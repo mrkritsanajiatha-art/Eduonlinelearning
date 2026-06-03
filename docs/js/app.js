@@ -2,10 +2,11 @@
 const API_ENDPOINT = '';
 let appConfig = {};
 const app = {
-  logoUrl: 'https://img5.pic.in.th/file/secure-sv1/logo-smpd.png',
-  subtitle: '',
-  paymentQrUrl: 'https://img2.pic.in.th/pic/qrcode62ebffbb5d70e4e7.jpg',
-  payment: { bank: 'ธนาคารกสิกรไทย', accountNumber: '000-0-00000-0', promptPay: '0800000000', accountName: 'ชื่อบัญชี' }
+  logoUrl: 'https://img2.pic.in.th/1111bcdae880aff7e05f.png',
+  subtitle: 'by สมาพันธ์แพลตฟอร์มการศึกษาและอาชีพแห่งประเทศไทย',
+  paymentQrUrl: 'https://img1.pic.in.th/images/unnamed-1dde43eac40d0e0a1.jpg',
+  payment: { bank: 'ธนาคารไทยพาณิชย์', accountNumber: '4-1016-8624-0', promptPay: '062-607-8601', accountName: 'นายยุทธ อัครางกูร' },
+  superAdminEmail: 'Mrkritsanajiatha@gmail.com'
 };
 const API_URL = API_ENDPOINT;
 
