@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="th">
 <head>
-  <base target="_top" href="<?= app.publishedUrl ?>">
-  <title><?= app.browserTitle ?></title>
-  <?!= include('style') ?>
+  ">
+  <title>ONLINE LEARNING</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div class="topbar"><div id="ticker" class="ticker"></div></div>
@@ -370,7 +370,7 @@
       <div class="small text-muted">ONLINE LEARNING · <span class='app-subtitle-text'></span></div>
     </div>
   </footer>
-  <?!= include('script') ?>
+  <script src="js/app.js"></script>
   <script>
   window.pageInit = async () => {
     setLoading('#featuredCourses'); setLoading('#homeNews'); setLoading('#homeEvents');
