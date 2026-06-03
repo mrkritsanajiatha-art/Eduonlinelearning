@@ -1,0 +1,302 @@
+
+const API_ENDPOINT = '';
+let appConfig = {};
+const app = {
+  logoUrl: 'https://img5.pic.in.th/file/secure-sv1/logo-smpd.png',
+  subtitle: '',
+  paymentQrUrl: 'https://img2.pic.in.th/pic/qrcode62ebffbb5d70e4e7.jpg',
+  payment: { bank: 'ธนาคารกสิกรไทย', accountNumber: '000-0-00000-0', promptPay: '0800000000', accountName: 'ชื่อบัญชี' }
+};
+const API_URL = API_ENDPOINT;
+
+async function callApi(method, payload = {}) {
+  payload.token = localStorage.getItem('appToken') || '';
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ method, payload }),
+      redirect: 'follow'
+    });
+    const res = await response.json();
+    if (res && res.ok) return res.data;
+    const msg = (res && res.message) || 'Error';
+    if (msg.includes('No token') || msg.includes('Invalid token')) {
+       localStorage.removeItem('appToken');
+       if (location.hash !== '#login' && location.hash !== '#home' && location.hash !== '#courses') {
+         location.hash = 'login';
+       }
+    }
+    throw new Error(msg);
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
+document.body.classList.add('guest-mode');
+const AppState = { user: null, app: null };
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+const h = (value) => String(value ?? '').replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const money = (value) => Number(value || 0).toLocaleString('th-TH', { style: 'currency', currency: 'THB' });
+const param = (key) => (window.SERVER_PARAMS && window.SERVER_PARAMS[key]) || new URLSearchParams(location.search).get(key) || '';
+function pageUrl(page, params = {}) {
+  const query = new URLSearchParams(Object.assign({ page }, params));
+  return `?${query.toString()}`;
+}
+function getToken() { return localStorage.getItem('appToken') || ''; }
+function  logout() { localStorage.removeItem('appToken'); location.href = pageUrl('login'); }
+function toast(message, type = 'success') {
+  const host = $('#toastHost') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'toastHost', className: 'toast-container position-fixed top-0 end-0 p-3' }));
+  const el = document.createElement('div');
+  el.className = `toast align-items-center text-bg-${type} border-0`;
+  el.innerHTML = `<div class="d-flex"><div class="toast-body">${h(message)}</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+  host.appendChild(el);
+  new bootstrap.Toast(el, { delay: 3800 }).show();
+}
+function setLoading(target, text = 'กำลังโหลดข้อมูล') {
+  const el = typeof target === 'string' ? $(target) : target;
+  if (el) el.innerHTML = `<div class="empty">${h(text)}</div>`;
+}
+function getCart() {
+  try { return JSON.parse(localStorage.getItem('cart') || '[]'); } catch(e) { return []; }
+}
+function saveCart(cart) {
+  localStorage.setItem('cart', JSON.stringify(cart));
+  updateCartBadge();
+}
+function addToCart(course) {
+  const cart = getCart();
+  if (cart.find(c => c.id === course.id)) {
+    toast('คอร์สนี้อยู่ในตะกร้าแล้ว', 'warning');
+    return false;
+  }
+  cart.push({ id: course.id, title: course.title, price: course.price, type: course.type });
+  saveCart(cart);
+  toast('เพิ่มลงตะกร้าแล้ว');
+  return true;
+}
+function removeFromCart(id) {
+  const cart = getCart();
+  const index = cart.findIndex(c => c.id === id);
+  if (index !== -1) {
+    cart.splice(index, 1);
+    saveCart(cart);
+    toast('ลบออกจากตะกร้าแล้ว');
+  }
+}
+function updateCartBadge() {
+  const cart = getCart();
+  $$('.cart-badge').forEach(el => {
+    el.textContent = cart.length;
+    el.style.display = cart.length > 0 ? 'inline-block' : 'none';
+  });
+}
+function formData(form) {
+  return Object.fromEntries(new FormData(form).entries());
+}
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function courseImage(course) {
+  return course.coverUrl || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80';
+}
+function eventImage(event) {
+  return event.imageUrl || 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80';
+}
+function processVideoUrl(url) {
+  if (!url) return '';
+  if (url.includes('drive.google.com') && url.includes('/view')) return url.replace('/view', '/preview');
+  
+  const listMatch = url.match(/[?&]list=([^#\&\?]+)/);
+  const listId = listMatch ? listMatch[1] : null;
+
+  const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+  const videoId = ytMatch ? ytMatch[1] : null;
+
+  if (listId) {
+    if (videoId) {
+      return 'https://www.youtube.com/embed/' + videoId + '?list=' + listId + '&rel=0';
+    } else {
+      return 'https://www.youtube.com/embed/videoseries?list=' + listId + '&rel=0';
+    }
+  } else if (videoId) {
+    return 'https://www.youtube.com/embed/' + videoId + '?rel=0';
+  }
+  
+  return url;
+}
+function badge(text, kind = 'blue') {
+  return `<span class="badge ${kind === 'gold' ? 'badge-gold' : 'badge-blue'}">${h(text)}</span>`;
+}
+function courseCard(course) {
+  return `<div class="col"><div class="card h-100">
+    <img src="${h(courseImage(course))}" class="card-img-top" alt="${h(course.title)}">
+    <div class="card-body d-flex flex-column gap-2">
+      <div class="d-flex justify-content-between gap-2">${badge(course.category || 'หลักสูตร')} ${badge(course.type || 'free', course.type === 'paid' ? 'gold' : 'blue')}</div>
+      <h5 class="card-title">${h(course.title)}</h5>
+      <p class="card-text line-clamp">${h(course.description)}</p>
+      <div class="small text-secondary">${h(course.instructor)} · ${h(course.hours)} ชั่วโมง</div>
+      <div class="d-flex justify-content-between align-items-center mt-auto">
+        <div>
+           <strong class="text-primary">${Number(course.price || 0) > 0 ? money(course.price) : (course.type === 'vip' ? 'สำหรับ VIP' : 'ฟรี')}</strong>
+           ${(course.type === 'paid' && Number(course.price || 0) > 0) ? `<div class="text-danger small mt-1" style="font-size:0.75rem;"><i class="bi bi-star-fill text-warning"></i> VIP จ่ายเพียง <strong>${money(course.price * 0.7)}</strong></div>` : ''}
+        </div>
+        <a class="btn btn-primary btn-sm" href="${pageUrl('course-detail', { id: course.id })}">รายละเอียด</a>
+      </div>
+    </div></div></div>`;
+}
+function eventCard(event) {
+  return `<div class="col"><div class="card h-100">
+    <img src="${h(eventImage(event))}" class="card-img-top" alt="${h(event.title)}">
+    <div class="card-body d-flex flex-column gap-2">
+      <div>${badge(event.type || 'free', event.type === 'paid' ? 'gold' : 'blue')}</div>
+      <h5>${h(event.title)}</h5><p class="line-clamp">${h(event.description)}</p>
+      <div class="small text-secondary">${h(event.startAt)} · ${h(event.location)}</div>
+      <a class="btn btn-outline-primary btn-sm mt-auto" href="${pageUrl('event-detail', { id: event.id })}">ลงทะเบียน</a>
+    </div></div></div>`;
+}
+async function initFrame() {
+  try {
+    const data = await callApi('getBootstrap');
+    AppState.user = data.user;
+    AppState.app = data.app;
+    const ticker = $('#ticker');
+    if (ticker) ticker.textContent = data.ticker.length ? data.ticker.map(n => n.title).join('   •   ') : 'ONLINE LEARNING พร้อมให้บริการครูและบุคลากรทางการศึกษา';
+    const userSlot = $('#userSlot');
+    if (userSlot) {
+      const u = data.user;
+      document.body.classList.remove('guest-mode');
+      userSlot.innerHTML = `<div class="dropdown">
+        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">${h(u.name || u.email)}</button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+          ${u.role === 'admin' || u.role === 'super_admin' ? `<li><a class="dropdown-item text-primary" href="?page=admin">Admin Backoffice</a></li>` : ''}
+          <li><a class="dropdown-item" href="?page=dashboard">คอร์สของฉัน / ข้อมูลส่วนตัว</a></li>
+          <li><a class="dropdown-item" href="?page=certificate">เกียรติบัตรของฉัน</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="#" onclick="logout();return false;">ออกจากระบบ (Logout)</a></li>
+        </ul>
+      </div>`;
+    }
+    $$('[data-stat]').forEach(el => { el.textContent = Number(data.stats[el.dataset.stat] || 0).toLocaleString('th-TH'); });
+    injectBottomNav(data.user);
+  } catch (err) {
+    const userSlot = $('#userSlot');
+    if (userSlot) userSlot.innerHTML = `<a class="btn btn-primary btn-sm" href="${pageUrl('login')}">เข้าสู่ระบบ / สมัครสมาชิก</a>`;
+    injectBottomNav(null);
+  }
+}
+function injectBottomNav(user) {
+  const p = param('page') || 'home';
+  const role = user ? user.role : '';
+  const isLogged = !!user;
+  
+  const nav = document.createElement('div');
+  nav.className = 'bottom-nav';
+  
+  let menu = [];
+  if (isLogged) {
+    menu = [
+      { id: 'home', icon: 'bi-house-door', text: 'หน้าแรก', link: '?page=home' },
+      { id: 'courses', icon: 'bi-journal-bookmark', text: 'หลักสูตรทั้งหมด', link: '?page=courses' },
+      { id: 'cart', icon: 'bi-cart', text: 'ตะกร้า', link: '?page=cart' },
+      { id: 'dashboard', icon: 'bi-person', text: 'ห้องเรียนของฉัน', link: '?page=dashboard' }
+    ];
+    if (role === 'admin' || role === 'super_admin') {
+       menu[3] = { id: 'admin', icon: 'bi-gear', text: 'แอดมิน', link: '?page=admin' };
+    }
+  } else {
+    menu = [
+      { id: 'home', icon: 'bi-house-door', text: 'หน้าแรก', link: '?page=home' },
+      { id: 'dashboard', icon: 'bi-person', text: 'เข้าสู่ระบบ', link: '?page=login' }
+    ];
+  }
+
+  nav.innerHTML = menu.map(m => `
+    <a href="${m.link}" class="${(p === m.id || (p==='course-detail'&&m.id==='courses')) ? 'active' : ''} position-relative">
+      <i class="bi ${p === m.id || (p==='course-detail'&&m.id==='courses') ? m.icon + '-fill' : m.icon}"></i>
+      ${m.id === 'cart' ? '<span class="cart-badge position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; margin-top: 5px;">0</span>' : ''}
+      <span>${m.text}</span>
+    </a>
+  `).join('');
+  
+  document.body.appendChild(nav);
+}
+function bindProfileForm() {
+  const form = $('#profileForm');
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try { await callApi('updateMyProfile', formData(form)); toast('บันทึกข้อมูลแล้ว'); } catch (err) { toast(err.message, 'danger'); }
+  });
+}
+document.addEventListener('DOMContentLoaded', () => {
+  initFrame();
+  bindProfileForm();
+  
+  // Inject cart into top navbar
+  const navContainer = $('.navbar .container');
+  const userSlot = $('#userSlot');
+  if (navContainer && userSlot) {
+    const dFlex = document.createElement('div');
+    dFlex.className = 'd-flex align-items-center gap-3 ms-lg-auto';
+    const cartBtn = document.createElement('a');
+    cartBtn.href = '?page=cart';
+    cartBtn.className = 'text-dark position-relative me-2';
+    cartBtn.innerHTML = '<i class="bi bi-cart fs-5"></i><span class="cart-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem; display:none;">0</span>';
+    dFlex.appendChild(cartBtn);
+    userSlot.parentNode.insertBefore(dFlex, userSlot);
+    dFlex.appendChild(userSlot);
+  }
+  
+  updateCartBadge();
+  if (window.pageInit) window.pageInit();
+});
+function showGlobalLoading() {
+  let loader = $('#globalLoader');
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'globalLoader';
+    loader.innerHTML = '<div class="spinner"></div><div class="mt-3 fw-bold text-primary">กำลังโหลดข้อมูล...</div>';
+    document.body.appendChild(loader);
+  }
+  loader.classList.add('active');
+}
+
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('a');
+  if (link && link.href && link.href.includes('?page=') && !link.target && !link.hasAttribute('onclick')) {
+    e.preventDefault();
+    showGlobalLoading();
+    location.hash = link.href.split('?page=')[1];
+  }
+});
+
+
+
+// SPA Router
+function loadPage(page) {
+  if(!page) page = 'home';
+  const tpl = document.getElementById('tpl-' + page);
+  if(!tpl) {
+    document.getElementById('app-content').innerHTML = '<div class="alert alert-danger m-5">Page not found</div>';
+    return;
+  }
+  document.getElementById('app-content').innerHTML = tpl.innerHTML;
+  if (window.pageInit) window.pageInit();
+}
+
+window.addEventListener('hashchange', () => {
+  loadPage(location.hash ? location.hash.substring(1) : 'home');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadPage(location.hash ? location.hash.substring(1) : 'home');
+});

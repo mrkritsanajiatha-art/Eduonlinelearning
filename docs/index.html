@@ -1,13 +1,419 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ONLINE LEARNING</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<html lang="th">
+<head>
+  <base target="_top" href="<?= app.publishedUrl ?>">
+  <title><?= app.browserTitle ?></title>
+  <?!= include('style') ?>
+</head>
+<body>
+  <div class="topbar"><div id="ticker" class="ticker"></div></div>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="<?= ScriptApp.getService().getUrl() ?>?page=home">
+        <img class="brand-logo" src="https://img5.pic.in.th/file/secure-sv1/logo-smpd.png" alt="ONLINE LEARNING">
+        <span><span class="brand-name">ONLINE LEARNING</span><span class="brand-subtitle"><span class='app-subtitle-text'></span></span></span>
+      </a>
+      <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav"><span class="navbar-toggler-icon"></span></button>
+      <div id="nav" class="collapse navbar-collapse">
+        <div class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+          <a class="nav-link" href="?page=courses">หลักสูตร</a><a class="nav-link" href="?page=vip">VIP</a><a class="nav-link" href="?page=events">กิจกรรม</a><a class="nav-link" href="?page=news">ข่าวสาร</a><a class="nav-link" href="?page=verify">ตรวจเกียรติบัตร</a><a class="nav-link" href="?page=about">เกี่ยวกับเรา</a><a class="nav-link" href="?page=contact">ติดต่อ</a><span id="userSlot" class="ms-lg-2"></span>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <main id="app-content">
+  <div class="text-center p-5"><div class="spinner-border text-primary"></div></div>
+</main>
+<div id="templates" style="display: none;">
+<div id="tpl-about">
+<div class="container"><div class="surface p-4 p-md-5"><img src="https://img5.pic.in.th/file/secure-sv1/logo-smpd.png" style="height:90px" class="mb-3"><h1>ONLINE LEARNING</h1><p class="lead"><span class='app-subtitle-text'></span></p><p>แพลตฟอร์มพัฒนาวิชาชีพครูและบุคลากรทางการศึกษาที่เชื่อมโยงหลักสูตรออนไลน์ สมาชิก VIP การลงทะเบียนกิจกรรม การชำระเงิน เกียรติบัตร ข่าวสาร แบบประเมิน Transcript และระบบหลังบ้านไว้ในระบบเดียวบน Google Workspace</p></div></div>
+</div>
+<div id="tpl-admin">
+
+  <div class="container-fluid px-3">
+    <div class="admin-shell">
+      <aside class="surface p-2 admin-nav">
+        <div class="nav nav-pills flex-lg-column" id="adminTabs" role="tablist">
+          <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tabDashboard">Dashboard</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabCourses">Courses</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabPayments">Payments</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabVip">VIP Requests</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabEvents">Events</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabUsers">Users</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabNews">News</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabForms">Forms</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabBroadcast">Broadcast Email</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabMedia">Media Library</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabLogs">Activity Logs</button>
+        </div>
+      </aside>
+      <section class="tab-content">
+        <div id="tabDashboard" class="tab-pane fade show active"><h1>Dashboard</h1><div id="adminStats" class="row row-cols-2 row-cols-xl-4 g-3"></div></div>
+        <div id="tabCourses" class="tab-pane fade"><h1>Courses</h1><form id="courseForm" class="surface p-4 mb-4"><div class="row g-3"><input type="hidden" name="id"><input type="hidden" name="coverFileId"><input type="hidden" name="documentFileId">
+          <div class="col-md-6"><label class="form-label">ชื่อหลักสูตร</label><input name="title" class="form-control" required></div>
+          <div class="col-md-3"><label class="form-label">วิทยากร</label><input name="instructor" class="form-control" required></div>
+          <div class="col-md-3"><label class="form-label">หมวดหมู่</label><input name="category" class="form-control" required></div>
+          
+          <div class="col-md-2"><label class="form-label">ชั่วโมง</label><input name="hours" type="number" class="form-control" required></div>
+          <div class="col-md-2"><label class="form-label">ราคา (บาท)</label><input name="price" type="number" class="form-control"></div>
+          <div class="col-md-2"><label class="form-label">ประเภท</label><select name="type" class="form-select"><option value="free">Free</option><option value="paid">Paid</option><option value="vip">VIP</option></select></div>
+          <div class="col-md-3"><label class="form-label">สถานะ</label><select name="status" class="form-select"><option value="published">Published</option><option value="draft">Draft</option></select></div>
+          <div class="col-md-3 d-flex align-items-end"><div class="form-check mb-2"><input name="featured" value="true" class="form-check-input" type="checkbox" id="featured"><label class="form-check-label" for="featured">ยอดนิยม (Featured)</label></div></div>
+          
+          <div class="col-md-6"><label class="form-label">Cover Image URL (ลิงก์รูปหน้าปก)</label><input name="coverUrl" class="form-control"></div>
+          <div class="col-md-6">
+            <label class="form-label">Video URLs (ลิงก์วีดีโอเรียน)</label>
+            <div id="videoUrlList"></div>
+            <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addVideoUrlInput('')">+ เพิ่มวิดีโอ</button>
+            <input type="hidden" name="videoUrl">
+          </div>
+          <div class="col-12"><label class="form-label">รายละเอียด</label><textarea name="description" class="form-control" rows="3" required></textarea></div>
+          <div class="col-12 text-end"><button type="button" class="btn btn-outline-secondary me-2" onclick="$('#courseForm').reset(); $('[name=id]').value=''; $('[name=coverFileId]').value=''; $('[name=documentFileId]').value=''">ล้างข้อมูล</button><button class="btn btn-primary px-4">บันทึกข้อมูล</button></div>
+        </div></form><div id="courseAdminList"></div></div>
+        <div id="tabPayments" class="tab-pane fade"><h1>Payments</h1><div id="paymentList"></div></div>
+        <div id="tabVip" class="tab-pane fade"><h1>VIP Requests</h1><div id="vipList"></div></div>
+        <div id="tabEvents" class="tab-pane fade"><h1>Events</h1><form id="eventForm" class="surface p-3 mb-3"><div class="row g-2"><input type="hidden" name="id"><div class="col-md-4"><input name="title" class="form-control" placeholder="ชื่อกิจกรรม" required></div><div class="col-md-3"><input name="speaker" class="form-control" placeholder="วิทยากร" required></div><div class="col-md-3"><input name="location" class="form-control" placeholder="สถานที่" required></div><div class="col-md-2"><input name="capacity" type="number" class="form-control" placeholder="ที่นั่ง" required></div><div class="col-md-3"><input name="startAt" type="datetime-local" class="form-control" required></div><div class="col-md-3"><input name="endAt" type="datetime-local" class="form-control"></div><div class="col-md-2"><input name="price" type="number" class="form-control" placeholder="ราคา"></div><div class="col-md-2"><select name="type" class="form-select"><option value="free">ฟรี</option><option value="paid">เสียค่าใช้จ่าย</option><option value="vip">VIP</option></select></div><div class="col-md-4"><input name="imageUrl" class="form-control" placeholder="Image URL"></div><div class="col-12"><textarea name="description" class="form-control" rows="3" placeholder="รายละเอียด" required></textarea></div><div class="col-md-2"><select name="status" class="form-select"><option value="published">Published</option><option value="draft">Draft</option></select></div><div class="col-md-2"><button class="btn btn-primary w-100">บันทึก</button></div></div></form><div id="eventAdminList"></div></div>
+        <div id="tabUsers" class="tab-pane fade"><h1>Users</h1><div id="userList"></div></div>
+        <div id="tabNews" class="tab-pane fade"><h1>News</h1><form id="newsForm" class="surface p-3 mb-3"><div class="row g-2"><input type="hidden" name="id"><div class="col-md-5"><input name="title" class="form-control" placeholder="หัวข้อข่าว" required></div><div class="col-md-3"><input name="category" class="form-control" placeholder="หมวดหมู่" required></div><div class="col-md-4"><input name="imageUrl" class="form-control" placeholder="Image URL"></div><div class="col-12"><input name="summary" class="form-control" placeholder="สรุปข่าว" required></div><div class="col-12"><textarea name="content" class="form-control" rows="4" placeholder="เนื้อหา" required></textarea></div><div class="col-md-2 form-check ms-2 pt-2"><input name="pinned" value="true" class="form-check-input" type="checkbox" id="newsPinned"><label class="form-check-label" for="newsPinned">ปักหมุด</label></div><div class="col-md-2 form-check ms-2 pt-2"><input name="published" value="true" class="form-check-input" type="checkbox" id="newsPub" checked><label class="form-check-label" for="newsPub">เผยแพร่</label></div><div class="col-md-2"><button class="btn btn-primary w-100">บันทึก</button></div></div></form><div id="newsAdminList"></div></div>
+        <div id="tabForms" class="tab-pane fade"><h1>Forms</h1><form id="formBuilder" class="surface p-3 mb-3"><div class="row g-2"><div class="col-md-4"><input name="title" class="form-control" placeholder="ชื่อแบบฟอร์ม" required></div><div class="col-md-2"><select name="formType" class="form-select"><option>Pre Test</option><option>Post Test</option><option>แบบประเมิน</option><option>แบบสอบถาม</option><option>แบบติดตามผล</option></select></div><div class="col-md-2"><input name="passingScore" type="number" class="form-control" placeholder="คะแนนผ่าน"></div><div class="col-12"><textarea name="description" class="form-control" placeholder="รายละเอียด"></textarea></div><div class="col-12"><textarea name="questionsRaw" class="form-control" rows="5" placeholder='[{"id":"q1","label":"คำถาม","type":"text","correctAnswer":""}]' required></textarea></div><div class="col-md-2"><button class="btn btn-primary w-100">บันทึก</button></div></div></form><div id="formList"></div></div>
+        <div id="tabBroadcast" class="tab-pane fade"><h1>Broadcast Email</h1><form id="broadcastForm" class="surface p-3"><div class="row g-2"><div class="col-md-8"><input name="subject" class="form-control" placeholder="หัวข้อ" required></div><div class="col-md-4"><select name="targetGroup" class="form-select"><option value="all">สมาชิกทั้งหมด</option><option value="vip">สมาชิก VIP</option><option value="learners">ผู้เรียน</option><option value="event_participants">ผู้เข้าร่วมกิจกรรม</option></select></div><div class="col-12"><textarea name="body" class="form-control" rows="6" placeholder="เนื้อหา HTML" required></textarea></div><div class="col-md-5"><input name="linkUrl" class="form-control" placeholder="ลิงก์"></div><div class="col-md-3"><input name="imageFileId" class="form-control" placeholder="Image File ID"></div><div class="col-md-3"><input name="attachmentFileId" class="form-control" placeholder="Attachment File ID"></div><div class="col-md-1"><button class="btn btn-primary w-100">ส่ง</button></div></div></form></div>
+        <div id="tabMedia" class="tab-pane fade"><h1>Media Library</h1><form id="mediaForm" class="surface p-3 mb-3"><div class="row g-2"><div class="col-md-4"><input id="mediaFile" type="file" class="form-control" required></div><div class="col-md-3"><input name="category" class="form-control" value="MediaLibrary"></div><div class="col-md-2"><button class="btn btn-primary w-100">อัปโหลด</button></div><div class="col-md-3"><button id="setupBtn" type="button" class="btn btn-outline-primary w-100">Setup Database & Assets</button></div></div></form><div id="mediaList"></div></div>
+        <div id="tabLogs" class="tab-pane fade"><h1>Activity Logs</h1><div id="logList"></div></div>
+      </section>
+    </div>
+  </div>
+
+</div>
+<div id="tpl-cart">
+<div class="container">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <h2 class="mb-4"><i class="bi bi-cart3"></i> ตะกร้าสินค้าของคุณ</h2>
+      <div class="surface p-4" id="cartItemsBox">
+        <div class="empty text-secondary py-5">กำลังโหลด...</div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="surface p-4 position-sticky" style="top: 100px;">
+        <h4 class="mb-3">สรุปคำสั่งซื้อ</h4>
+        
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-secondary">ยอดรวม (ราคาปกติ)</span>
+          <span id="summaryOriginal" class="fw-bold">0.00 ฿</span>
+        </div>
+        
+        <div id="vipDiscountRow" class="d-flex justify-content-between mb-2 text-danger" style="display:none !important;">
+          <span><i class="bi bi-star-fill text-warning"></i> ส่วนลด VIP (30%)</span>
+          <span id="summaryDiscount" class="fw-bold">-0.00 ฿</span>
+        </div>
+        
+        <hr>
+        
+        <div class="d-flex justify-content-between mb-4">
+          <span class="fs-5 fw-bold">ยอดสุทธิ</span>
+          <span id="summaryTotal" class="fs-4 fw-bold text-primary">0.00 ฿</span>
+        </div>
+
+        <div class="form-check mb-4 bg-light p-3 rounded border border-warning" id="vipCheckboxWrapper">
+          <input class="form-check-input ms-1" type="checkbox" id="vipCheck">
+          <label class="form-check-label ms-2 fw-bold text-dark" for="vipCheck">
+            <i class="bi bi-star-fill text-warning"></i> สมัครสมาชิก VIP (รับส่วนลด 30% ทันที)
+          </label>
+        </div>
+        
+        <button id="checkoutBtn" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">ดำเนินการชำระเงิน</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="tpl-certificate">
+<div class="container"><div class="d-flex justify-content-between align-items-center mb-3"><h1>เกียรติบัตรและ Transcript</h1><button id="exportTranscript" class="btn btn-primary">Export PDF</button></div><div id="certArea"></div></div>
+</div>
+<div id="tpl-contact">
+<div class="container"><div class="row g-4"><div class="col-lg-6"><div class="surface p-4"><h1>ติดต่อเรา</h1><p class="lead">ONLINE LEARNING</p><p><span class='app-subtitle-text'></span></p><p><strong>อีเมลผู้ดูแลระบบ:</strong> <?= app.superAdminEmail ?></p></div></div><div class="col-lg-6"><div class="surface p-4"><h3>ข้อมูลรับชำระ</h3><img class="qr-img mb-3" src="https://img2.pic.in.th/pic/qrcode62ebffbb5d70e4e7.jpg"><p><?= app.payment.bank ?><br>เลขบัญชี <?= app.payment.accountNumber ?><br>พร้อมเพย์ <?= app.payment.promptPay ?><br><?= app.payment.accountName ?></p></div></div></div></div>
+</div>
+<div id="tpl-course-detail">
+<div class="container"><div id="courseDetail"></div></div>
+</div>
+<div id="tpl-courses">
+<div class="container">
+  <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4"><div><h1>หลักสูตรทั้งหมด</h1><p class="text-secondary mb-0">Free Course · Paid Course · VIP Course</p></div><div class="d-flex gap-2"><input id="courseQ" class="form-control" placeholder="ค้นหาหลักสูตร"><select id="courseType" class="form-select"><option value="">ทุกประเภท</option><option value="free">Free</option><option value="paid">Paid</option><option value="vip">VIP</option></select></div></div>
+  <div id="courseList" class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3"></div>
+</div>
+</div>
+<div id="tpl-dashboard">
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>คอร์สของฉัน</h1>
+    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> ข้อมูลส่วนตัว</button>
+    <button class="btn btn-outline-danger ms-2" onclick="logout()"><i class="bi bi-box-arrow-right"></i> ออกจากระบบ</button>
+  </div>
+  <div id="dash" class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4"></div>
+</div>
+</div>
+<div id="tpl-event-detail">
+<div class="container"><div id="eventDetail"></div></div>
+</div>
+<div id="tpl-events">
+<div class="container"><div class="d-flex justify-content-between align-items-end mb-4"><div><h1>กิจกรรม</h1><p class="text-secondary mb-0">อบรม สัมมนา ประชุมวิชาการ และกิจกรรมเครือข่าย</p></div><select id="eventType" class="form-select" style="max-width:220px"><option value="">ทุกประเภท</option><option value="free">ฟรี</option><option value="paid">เสียค่าใช้จ่าย</option><option value="vip">VIP</option></select></div><div id="eventList" class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3"></div></div>
+</div>
+<div id="tpl-learn">
+
+  <div class="container">
+    <div id="videoBox" class="video-container">
+      <div class="empty bg-dark text-secondary" style="height: 450px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">กำลังโหลดวิดีโอ...</div>
+    </div>
+    
+    <div class="cert-container" id="certBox" style="display:none;">
+      <h4 class="text-primary text-center mb-1"><i class="bi bi-award"></i> ฟอร์มขอรับวุฒิบัตร</h4>
+      <p class="text-secondary text-center mb-4">กรุณากรอกข้อมูลของคุณให้ครบถ้วนเพื่อรับวุฒิบัตรเมื่อเรียนจบ</p>
+      
+      <form id="certForm">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">คำนำหน้า</label>
+            <input id="certTitle" class="form-control" placeholder="เช่น นาย, นาง, นางสาว" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">ชื่อ</label>
+            <input id="certFirstName" class="form-control" placeholder="ชื่อจริง" required>
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">นามสกุล</label>
+            <input id="certLastName" class="form-control" placeholder="นามสกุล" required>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">อีเมล (สำหรับจัดส่งสำเนา)</label>
+            <input id="certEmail" type="email" class="form-control" placeholder="อีเมลของคุณ" required>
+          </div>
+        </div>
+        
+        <div class="alert alert-danger p-3 my-4 text-center">
+          <strong>⚠️ ช่วยตรวจสอบข้อมูลให้ถูกต้องก่อนส่งข้อมูลยืนยัน</strong><br>
+          เนื่องจากข้อมูลนี้จะถูกพิมพ์ลงบนวุฒิบัตรของคุณ
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
+          <i class="bi bi-check2-circle"></i> บันทึกจบหลักสูตรและรับวุฒิบัตร
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+<div id="tpl-login">
+<div class="container" style="max-width:500px">
+  <div class="surface p-4 p-md-5">
+    <div class="text-center mb-4">
+      <img src="https://img5.pic.in.th/file/secure-sv1/logo-smpd.png" alt="ONLINE LEARNING" style="height:80px">
+      <h3 class="mt-3" id="formTitle">เข้าสู่ระบบ</h3>
+    </div>
+    
+    <div id="loginStatus"></div>
+
+    <form id="loginForm">
+      <div class="mb-3">
+        <label class="form-label">ชื่อผู้ใช้ / รหัสประจำตัว (หรือ Email)</label>
+        <input type="text" name="username" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">รหัสผ่าน</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mb-3">เข้าสู่ระบบ</button>
+      <div class="text-center mt-3 d-flex flex-column gap-2">
+        <div><span>ยังไม่มีบัญชีใช่หรือไม่?</span> <a href="#" id="showRegister">สมัครสมาชิกใหม่</a></div>
+        <div><a href="#" id="showForgot" class="text-muted text-decoration-underline">ลืมรหัสผ่าน?</a></div>
+      </div>
+    </form>
+
+    <form id="registerForm" class="d-none">
+      <div class="row g-2 mb-2">
+        <div class="col-4">
+          <label class="form-label">คำนำหน้า</label>
+          <select name="title" class="form-select" required>
+            <option value="">เลือก...</option>
+            <option value="นาย">นาย</option>
+            <option value="นาง">นาง</option>
+            <option value="นางสาว">นางสาว</option>
+            <option value="ดร.">ดร.</option>
+            <option value="ผศ.ดร.">ผศ.ดร.</option>
+            <option value="รศ.ดร.">รศ.ดร.</option>
+            <option value="ศ.ดร.">ศ.ดร.</option>
+            <option value="ครู">ครู</option>
+            <option value="ว่าที่ ร.ต.">ว่าที่ ร.ต.</option>
+            <option value="ว่าที่ ร.ต.หญิง">ว่าที่ ร.ต.หญิง</option>
+            <option value="">อื่นๆ (ไม่ระบุ)</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label class="form-label">ชื่อ</label>
+          <input type="text" name="firstName" class="form-control" required>
+        </div>
+        <div class="col-4">
+          <label class="form-label">นามสกุล</label>
+          <input type="text" name="lastName" class="form-control" required>
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">เบอร์โทรศัพท์</label>
+        <input type="tel" name="phone" class="form-control" required>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">อีเมล (ใช้สำหรับเข้าสู่ระบบ)</label>
+        <input type="email" name="email" class="form-control" required>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">รหัสผ่านที่ต้องการ</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">ท่านทราบข่าวสารจากช่องทางใด</label>
+        <select name="source" class="form-select" required>
+          <option value="">เลือกช่องทาง...</option>
+          <option value="Facebook">Facebook</option>
+          <option value="Line">Line</option>
+          <option value="Website">Website</option>
+          <option value="เพื่อนแนะนำ">เพื่อนแนะนำ</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mb-3">สมัครสมาชิก</button>
+      <div class="text-center">
+        <span>มีบัญชีอยู่แล้ว?</span> <a href="#" id="showLogin">เข้าสู่ระบบ</a>
+      </div>
+    </form>
+
+    <form id="forgotForm" class="d-none">
+      <div class="mb-3">
+        <label class="form-label">ใส่อีเมลของคุณ</label>
+        <input type="email" name="email" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-warning w-100 mb-3">ส่งรหัสผ่านใหม่ไปที่อีเมล</button>
+      <div class="text-center">
+        <a href="#" id="showLoginFromForgot">กลับไปเข้าสู่ระบบ</a>
+      </div>
+    </form>
+
+  </div>
+</div>
+</div>
+<div id="tpl-news">
+<div class="container"><h1>ข่าวสาร</h1><div id="newsList" class="vstack gap-3"></div></div>
+</div>
+<div id="tpl-payment">
+<div class="container" style="max-width:500px">
+  <div class="surface p-4 p-md-5 text-center">
+    <h3 class="mb-4">ดำเนินการชำระเงิน</h3>
+    <div id="paymentDetails" class="mb-4"></div>
+    <div class="bg-light p-3 rounded mb-4">
+      <img class="qr-img mb-3" src="https://img2.pic.in.th/pic/qrcode62ebffbb5d70e4e7.jpg" style="max-height: 250px; object-fit: contain;">
+      <p class="small text-secondary mb-0">แสกน QR Code เพื่อชำระเงิน</p>
+      <div class="mt-3 text-start bg-white p-3 border rounded">
+        <p class="mb-1"><strong>ธนาคาร:</strong> <?= app.payment.bank ?></p>
+        <p class="mb-1"><strong>เลขบัญชี:</strong> <?= app.payment.accountNumber ?></p>
+        <p class="mb-0"><strong>ชื่อบัญชี:</strong> <?= app.payment.accountName ?></p>
+      </div>
+    </div>
+    <div class="text-start mb-3">
+      <label class="form-label fw-bold">1. ตรวจสอบสิทธิ์ VIP (สำหรับสมาชิก VIP)</label>
+      <input type="text" id="vipLastName" class="form-control" placeholder="กรอกนามสกุลของคุณ (เพื่อตรวจสอบสิทธิ์เรียนฟรี)">
+    </div>
+    <div class="text-start mb-4">
+      <label class="form-label fw-bold">2. อัปโหลดสลิปชำระเงิน</label>
+      <input id="slipFile" type="file" class="form-control" accept="image/*,application/pdf">
+      <small class="text-danger">*สมาชิก VIP ไม่ต้องแนบสลิป หากได้สิทธิ์เรียนฟรี</small>
+    </div>
+    <button id="submitPaymentBtn" class="btn btn-primary w-100 fw-bold btn-lg">ยืนยันการทำรายการ</button>
+  </div>
+</div>
+</div>
+<div id="tpl-verify">
+<div class="container" style="max-width:840px"><h1>ตรวจสอบเกียรติบัตร</h1><form id="verifyForm" class="surface p-4 mb-3"><label class="form-label">Certificate ID</label><div class="input-group"><input id="certificateId" class="form-control" value="<?= params.id || '' ?>" required><button class="btn btn-primary">ตรวจสอบ</button></div></form><div id="verifyResult"></div></div>
+</div>
+<div id="tpl-vip">
+<div class="container"><div class="row g-4">
+  <div class="col-lg-7"><h1>สมาชิก VIP</h1><p class="lead">เข้าถึงหลักสูตรและกิจกรรมสำหรับสมาชิก VIP เมื่อผู้ดูแลระบบอนุมัติคำขอ</p>
+    <div id="oldVipBox" class="surface p-4 mb-4" style="border: 2px solid var(--accent-gold); display: none;">
+      <h4 class="text-warning mb-2"><i class="bi bi-star-fill"></i> สำหรับสมาชิก VIP เก่า</h4>
+      <p class="text-secondary small mb-3">ตรวจสอบสิทธิ์และเชื่อมโยงบัญชีด้วยนามสกุลของคุณ (ตามที่เคยลงทะเบียนไว้)</p>
+      <div class="input-group">
+        <input type="text" id="oldVipLastName" class="form-control" placeholder="กรอกนามสกุล">
+        <button class="btn btn-warning" id="verifyOldVipBtn">ตรวจสอบสิทธิ์</button>
+      </div>
+    </div>
+    <form id="vipForm" class="surface p-4"><h4 class="mb-3">สมัครสมาชิก VIP ใหม่</h4><div class="row g-3">
+      <div class="col-md-3"><label class="form-label">คำนำหน้า</label><select name="title" class="form-select" required><option value="">เลือก...</option><option value="นาย">นาย</option><option value="นาง">นาง</option><option value="นางสาว">นางสาว</option><option value="ดร.">ดร.</option><option value="ผศ.ดร.">ผศ.ดร.</option><option value="รศ.ดร.">รศ.ดร.</option><option value="ศ.ดร.">ศ.ดร.</option><option value="ครู">ครู</option><option value="ว่าที่ ร.ต.">ว่าที่ ร.ต.</option><option value="ว่าที่ ร.ต.หญิง">ว่าที่ ร.ต.หญิง</option><option value="">อื่นๆ (ไม่ระบุ)</option></select></div>
+      <div class="col-md-4"><label class="form-label">ชื่อ</label><input name="firstName" class="form-control" required></div>
+      <div class="col-md-5"><label class="form-label">นามสกุล</label><input name="lastName" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">อีเมล</label><input name="email" type="email" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">เบอร์โทร</label><input name="phone" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">ชื่อ Facebook สำหรับเข้ากลุ่ม</label><input name="facebookName" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">หน่วยงาน</label><input name="organization" class="form-control"></div>
+      <div class="col-12"><button class="btn btn-primary">ส่งคำขอ VIP</button></div>
+    </div></form>
+  </div>
+  <div class="col-lg-5"><div class="surface p-4"><h3>ข้อมูลรับชำระ</h3><img class="qr-img my-3" src="https://img2.pic.in.th/pic/qrcode62ebffbb5d70e4e7.jpg"><p class="mb-1"><strong><?= app.payment.bank ?></strong></p><p class="mb-1">เลขบัญชี <?= app.payment.accountNumber ?></p><p class="mb-1">พร้อมเพย์ <?= app.payment.promptPay ?></p><p>ชื่อบัญชี <?= app.payment.accountName ?></p><div id="vipSlipBox" class="d-none"><input id="vipSlip" type="file" class="form-control mb-2" accept="image/*,application/pdf"><button id="vipSlipBtn" class="btn btn-warning w-100">แนบสลิป VIP</button></div></div></div>
+</div></div>
+</div>
+
+</div>
+
+  <footer class="footer py-5">
+    <div class="container text-center">
+      <h5 class="mb-3 text-primary">ติดต่อเรา</h5>
+      <div class="d-flex justify-content-center gap-3 mb-4">
+        <a href="https://lin.ee/I3b1Q55" target="_blank" class="btn btn-outline-success"><i class="bi bi-line"></i> Line Official</a>
+        <a href="https://www.facebook.com/share/18cfh82rzr/?mibextid=wwXIfr" target="_blank" class="btn btn-outline-primary"><i class="bi bi-facebook"></i> Facebook Page</a>
+      </div>
+      <div class="small text-muted">ONLINE LEARNING · <span class='app-subtitle-text'></span></div>
+    </div>
+  </footer>
+  <?!= include('script') ?>
+  <script>
+  window.pageInit = async () => {
+    setLoading('#featuredCourses'); setLoading('#homeNews'); setLoading('#homeEvents');
+    try {
+      const user = await callApi('getCurrentUser').catch(() => null);
+      if (user) {
+        $('#heroButtons').innerHTML = `
+          <a class="btn btn-primary btn-lg px-4" href="?page=dashboard">ห้องเรียนของฉัน</a>
+          <a class="btn btn-outline-primary btn-lg px-4" href="?page=courses">ดูหลักสูตรทั้งหมด</a>
+          <a class="btn btn-warning btn-lg px-4" href="?page=vip">สมัครสมาชิก VIP</a>
+        `;
+      } else {
+        $('#heroButtons').innerHTML = `
+          <a class="btn btn-primary btn-lg px-4" href="?page=login">เข้าสู่ระบบ</a>
+          <a class="btn btn-outline-primary btn-lg px-4" href="?page=login">สมัครเข้าเรียนออนไลน์</a>
+          <a class="btn btn-warning btn-lg px-4" href="?page=vip">รายละเอียด VIP</a>
+        `;
+      }
+
+      const data = await callApi('getHomeData');
+      const courses = data.courses || [];
+      const news = data.news || [];
+      const events = data.events || [];
+      const leaderboard = data.leaderboard || [];
+      
+      $('#featuredCourses').innerHTML = courses.filter(c => String(c.featured) === 'true' || c.featured === true).slice(0,3).map(courseCard).join('') || '<div class="col-12"><div class="empty">ยังไม่มีหลักสูตรที่เผยแพร่</div></div>';
+      $('#homeNews').innerHTML = news.slice(0,4).map(n => `<a class="surface p-3 d-block" href="?page=news#${h(n.id)}"><strong>${h(n.title)}</strong><div class="small text-secondary">${h(n.summary)}</div></a>`).join('') || '<div class="empty">ยังไม่มีข่าวประชาสัมพันธ์</div>';
+      $('#homeEvents').innerHTML = events.slice(0,4).map(e => `<a class="surface p-3 d-block" href="${pageUrl('event-detail',{id:e.id})}"><strong>${h(e.title)}</strong><div class="small text-secondary">${h(e.startAt)} · ${h(e.location)}</div></a>`).join('') || '<div class="empty">ยังไม่มีกิจกรรม</div>';
+      
+      if (leaderboard.length > 0) {
+        let lbHtml = '<div class="card shadow-sm border-0 bg-white rounded-4 overflow-hidden"><div class="card-body p-4"><h4 class="card-title text-primary text-center mb-4"><i class="bi bi-trophy-fill text-warning fs-3"></i><br>Top 5 ผู้สะสมชั่วโมงสูงสุด</h4><div class="list-group list-group-flush">';
+        leaderboard.forEach((l, i) => {
+          lbHtml += `<div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3 ${i<3?'border-bottom':''}"><div class="d-flex align-items-center"><div class="badge bg-${i===0?'warning':(i===1?'secondary':(i===2?'danger':'primary'))} rounded-circle me-3 p-2" style="width:35px;height:35px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">${i+1}</div><div class="fw-bold fs-5">${h(l.name)}</div></div><span class="badge bg-primary rounded-pill fs-6 px-3 py-2">${l.hours} ชั่วโมง</span></div>`;
+        });
+        lbHtml += '</div></div></div>';
+        $('#homeLeaderboard').innerHTML = lbHtml;
+      }
+    } catch(err) {
+      $('#featuredCourses').innerHTML = '<div class="col-12"><div class="empty text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</div></div>';
+      $('#homeNews').innerHTML = '<div class="empty text-danger">เกิดข้อผิดพลาด</div>';
+      $('#homeEvents').innerHTML = '<div class="empty text-danger">เกิดข้อผิดพลาด</div>';
+    }
+  };
+  </script>
+</body>
 </html>
