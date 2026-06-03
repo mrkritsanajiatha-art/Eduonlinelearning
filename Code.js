@@ -1,4 +1,15 @@
 function doGet(e) {
+  if (e && e.parameter && e.parameter.method) {
+    // API Support via GET
+    try {
+      const method = e.parameter.method;
+      const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : {};
+      const result = api(method, payload);
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    } catch (err) {
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, message: err.message })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
   
   if (e && e.parameter && e.parameter.action === 'approve_payment') {
     const secret = getSetting('adminSecret');
