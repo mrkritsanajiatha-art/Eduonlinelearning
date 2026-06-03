@@ -1,0 +1,61 @@
+<!doctype html><html lang="th"><head><base target="_top" href="<?= app.publishedUrl ?>"><title>VIP | <?= app.browserTitle ?></title><?!= include('style') ?></head>
+<body><div class="topbar"><div id="ticker" class="ticker"></div></div><nav class="navbar"><div class="container"><a class="navbar-brand d-flex align-items-center gap-2" href="?page=home"><img class="brand-logo" src="<?= app.logoUrl ?>"><span class="brand-name">ONLINE LEARNING</span></a><span id="userSlot"></span></div></nav>
+<main class="section"><div class="container"><div class="row g-4">
+  <div class="col-lg-7"><h1>สมาชิก VIP</h1><p class="lead">เข้าถึงหลักสูตรและกิจกรรมสำหรับสมาชิก VIP เมื่อผู้ดูแลระบบอนุมัติคำขอ</p>
+    <div id="oldVipBox" class="surface p-4 mb-4" style="border: 2px solid var(--accent-gold); display: none;">
+      <h4 class="text-warning mb-2"><i class="bi bi-star-fill"></i> สำหรับสมาชิก VIP เก่า</h4>
+      <p class="text-secondary small mb-3">ตรวจสอบสิทธิ์และเชื่อมโยงบัญชีด้วยนามสกุลของคุณ (ตามที่เคยลงทะเบียนไว้)</p>
+      <div class="input-group">
+        <input type="text" id="oldVipLastName" class="form-control" placeholder="กรอกนามสกุล">
+        <button class="btn btn-warning" id="verifyOldVipBtn">ตรวจสอบสิทธิ์</button>
+      </div>
+    </div>
+    <form id="vipForm" class="surface p-4"><h4 class="mb-3">สมัครสมาชิก VIP ใหม่</h4><div class="row g-3">
+      <div class="col-md-3"><label class="form-label">คำนำหน้า</label><select name="title" class="form-select" required><option value="">เลือก...</option><option value="นาย">นาย</option><option value="นาง">นาง</option><option value="นางสาว">นางสาว</option><option value="ดร.">ดร.</option><option value="ผศ.ดร.">ผศ.ดร.</option><option value="รศ.ดร.">รศ.ดร.</option><option value="ศ.ดร.">ศ.ดร.</option><option value="ครู">ครู</option><option value="ว่าที่ ร.ต.">ว่าที่ ร.ต.</option><option value="ว่าที่ ร.ต.หญิง">ว่าที่ ร.ต.หญิง</option><option value="">อื่นๆ (ไม่ระบุ)</option></select></div>
+      <div class="col-md-4"><label class="form-label">ชื่อ</label><input name="firstName" class="form-control" required></div>
+      <div class="col-md-5"><label class="form-label">นามสกุล</label><input name="lastName" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">อีเมล</label><input name="email" type="email" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">เบอร์โทร</label><input name="phone" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">ชื่อ Facebook สำหรับเข้ากลุ่ม</label><input name="facebookName" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label">หน่วยงาน</label><input name="organization" class="form-control"></div>
+      <div class="col-12"><button class="btn btn-primary">ส่งคำขอ VIP</button></div>
+    </div></form>
+  </div>
+  <div class="col-lg-5"><div class="surface p-4"><h3>ข้อมูลรับชำระ</h3><img class="qr-img my-3" src="<?= app.paymentQrUrl ?>"><p class="mb-1"><strong><?= app.payment.bank ?></strong></p><p class="mb-1">เลขบัญชี <?= app.payment.accountNumber ?></p><p class="mb-1">พร้อมเพย์ <?= app.payment.promptPay ?></p><p>ชื่อบัญชี <?= app.payment.accountName ?></p><div id="vipSlipBox" class="d-none"><input id="vipSlip" type="file" class="form-control mb-2" accept="image/*,application/pdf"><button id="vipSlipBtn" class="btn btn-warning w-100">แนบสลิป VIP</button></div></div></div>
+</div></div></main><?!= include('script') ?>
+<script>
+let vipRequest=null; 
+window.pageInit=async()=>{ 
+  const u=await callApi('getCurrentUser'); 
+  if(u.vipStatus === 'approved') {
+    $('.col-lg-7').innerHTML = `<div class="alert alert-success mt-4"><h3><i class="bi bi-star-fill text-warning"></i> คุณเป็นสมาชิก VIP แล้ว</h3><p>คุณสามารถเข้าเรียนหลักสูตรและเข้าร่วมกิจกรรมสำหรับ VIP ได้ฟรีทันที</p></div>`;
+    $('.col-lg-5').style.display = 'none';
+    return;
+  }
+  
+  $('#oldVipBox').style.display = 'block';
+  $('#verifyOldVipBtn').addEventListener('click', async () => {
+    const ln = $('#oldVipLastName').value.trim();
+    if(!ln) return toast('กรุณากรอกนามสกุล', 'danger');
+    showGlobalLoading();
+    try {
+      await callApi('claimVip', { lastName: ln });
+      toast('ระบบได้อัปเกรดบัญชีของคุณเป็น VIP เรียบร้อยแล้ว', 'success');
+      setTimeout(() => location.reload(), 1500);
+    } catch(err) {
+      toast(err.message, 'danger');
+      $('#globalLoader').classList.remove('active');
+    }
+  });
+
+  $('[name=title]').value=u.title||''; 
+  $('[name=firstName]').value=u.firstName||''; 
+  $('[name=lastName]').value=u.lastName||''; 
+  $('[name=email]').value=u.email||''; 
+  $('[name=phone]').value=u.phone||''; 
+  $('[name=organization]').value=u.organization||''; 
+  $('[name=facebookName]').value=u.facebookName||''; 
+  $('#vipForm').addEventListener('submit',async e=>{e.preventDefault(); vipRequest=await callApi('requestVip',formData(e.target)); toast('ส่งคำขอ VIP แล้ว'); $('#vipSlipBox').classList.remove('d-none');}); 
+  $('#vipSlipBtn').addEventListener('click',async()=>{const f=$('#vipSlip').files[0]; if(!f||!vipRequest)return toast('กรุณาเลือกไฟล์สลิป','danger'); const base64=await fileToBase64(f); await callApi('submitPaymentSlip',{vipRequestId:vipRequest.id,amount:0,type:'vip',fileName:f.name,mimeType:f.type,slipBase64:base64}); toast('แนบสลิป VIP แล้ว');}); 
+};
+</script></body></html>

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <base target="_top" href="<?= app.publishedUrl ?>">
+  <title><?= app.browserTitle ?></title>
+  <?!= include('style') ?>
+</head>
+<body>
+  <div class="topbar"><div id="ticker" class="ticker"></div></div>
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="<?= ScriptApp.getService().getUrl() ?>?page=home">
+        <img class="brand-logo" src="<?= app.logoUrl ?>" alt="ONLINE LEARNING">
+        <span><span class="brand-name">ONLINE LEARNING</span><span class="brand-subtitle"><?= app.subtitle ?></span></span>
+      </a>
+      <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav"><span class="navbar-toggler-icon"></span></button>
+      <div id="nav" class="collapse navbar-collapse">
+        <div class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+          <a class="nav-link" href="?page=courses">หลักสูตร</a><a class="nav-link" href="?page=vip">VIP</a><a class="nav-link" href="?page=events">กิจกรรม</a><a class="nav-link" href="?page=news">ข่าวสาร</a><a class="nav-link" href="?page=verify">ตรวจเกียรติบัตร</a><a class="nav-link" href="?page=about">เกี่ยวกับเรา</a><a class="nav-link" href="?page=contact">ติดต่อ</a><span id="userSlot" class="ms-lg-2"></span>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <main>
+    <section class="hero text-center py-5" style="background: linear-gradient(135deg, rgba(0,75,147,0.05) 0%, rgba(0,75,147,0.1) 100%); padding-top: 80px; padding-bottom: 80px;">
+      <div class="container py-5">
+        <h1 class="display-4 fw-bold text-primary mb-3">ปลดล็อกศักยภาพในตัวคุณ<br><span class="text-dark">ยกระดับการศึกษาไทยสู่ความเป็นเลิศ</span></h1>
+        <p class="lead text-secondary mb-4 mx-auto" style="max-width: 600px;">
+          <?= app.subtitle ?><br>
+          เรียนรู้ออนไลน์ไร้ขีดจำกัด กับศูนย์กลางการพัฒนาวิชาชีพครูและบุคลากรทางการศึกษาของประเทศไทย
+        </p>
+        <div class="d-flex justify-content-center flex-wrap gap-3 mt-4" id="heroButtons">
+          <div class="spinner-border text-primary" role="status"></div>
+        </div>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container">
+        <div class="row row-cols-2 row-cols-lg-5 g-3">
+          <div class="col"><div class="stat"><span>สมาชิกทั้งหมด</span><strong data-stat="users">0</strong></div></div>
+          <div class="col"><div class="stat"><span>หลักสูตรทั้งหมด</span><strong data-stat="courses">0</strong></div></div>
+          <div class="col"><div class="stat"><span>ผู้ผ่านการอบรม</span><strong data-stat="graduates">0</strong></div></div>
+          <div class="col"><div class="stat"><span>เกียรติบัตร</span><strong data-stat="certificates">0</strong></div></div>
+          <div class="col"><div class="stat"><span>สมาชิก VIP</span><strong data-stat="vip">0</strong></div></div>
+        </div>
+      </div>
+    </section>
+    <section class="section pt-0">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-3"><div><h2>หลักสูตรยอดนิยม</h2><p class="text-secondary mb-0">หลักสูตรที่เปิดเผยแพร่และปักหมุดโดยผู้ดูแลระบบ</p></div><a href="?page=courses">ทั้งหมด</a></div>
+        <div id="featuredCourses" class="row row-cols-1 row-cols-md-3 g-3"></div>
+      </div>
+    </section>
+    <section class="section pt-0">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-8" id="homeLeaderboard"></div>
+        </div>
+      </div>
+    </section>
+    <section class="section pt-0">
+      <div class="container">
+        <div class="row g-3">
+          <div class="col-lg-6"><h2>ข่าวประชาสัมพันธ์</h2><div id="homeNews" class="vstack gap-2"></div></div>
+          <div class="col-lg-6"><h2>กิจกรรม</h2><div id="homeEvents" class="vstack gap-2"></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer py-5">
+    <div class="container text-center">
+      <h5 class="mb-3 text-primary">ติดต่อเรา</h5>
+      <div class="d-flex justify-content-center gap-3 mb-4">
+        <a href="https://lin.ee/I3b1Q55" target="_blank" class="btn btn-outline-success"><i class="bi bi-line"></i> Line Official</a>
+        <a href="https://www.facebook.com/share/18cfh82rzr/?mibextid=wwXIfr" target="_blank" class="btn btn-outline-primary"><i class="bi bi-facebook"></i> Facebook Page</a>
+      </div>
+      <div class="small text-muted">ONLINE LEARNING · <?= app.subtitle ?></div>
+    </div>
+  </footer>
+  <?!= include('script') ?>
+  <script>
+  window.pageInit = async () => {
+    setLoading('#featuredCourses'); setLoading('#homeNews'); setLoading('#homeEvents');
+    try {
+      const user = await callApi('getCurrentUser').catch(() => null);
+      if (user) {
+        $('#heroButtons').innerHTML = `
+          <a class="btn btn-primary btn-lg px-4" href="?page=dashboard">ห้องเรียนของฉัน</a>
+          <a class="btn btn-outline-primary btn-lg px-4" href="?page=courses">ดูหลักสูตรทั้งหมด</a>
+          <a class="btn btn-warning btn-lg px-4" href="?page=vip">สมัครสมาชิก VIP</a>
+        `;
+      } else {
+        $('#heroButtons').innerHTML = `
+          <a class="btn btn-primary btn-lg px-4" href="?page=login">เข้าสู่ระบบ</a>
+          <a class="btn btn-outline-primary btn-lg px-4" href="?page=login">สมัครเข้าเรียนออนไลน์</a>
+          <a class="btn btn-warning btn-lg px-4" href="?page=vip">รายละเอียด VIP</a>
+        `;
+      }
+
+      const data = await callApi('getHomeData');
+      const courses = data.courses || [];
+      const news = data.news || [];
+      const events = data.events || [];
+      const leaderboard = data.leaderboard || [];
+      
+      $('#featuredCourses').innerHTML = courses.filter(c => String(c.featured) === 'true' || c.featured === true).slice(0,3).map(courseCard).join('') || '<div class="col-12"><div class="empty">ยังไม่มีหลักสูตรที่เผยแพร่</div></div>';
+      $('#homeNews').innerHTML = news.slice(0,4).map(n => `<a class="surface p-3 d-block" href="?page=news#${h(n.id)}"><strong>${h(n.title)}</strong><div class="small text-secondary">${h(n.summary)}</div></a>`).join('') || '<div class="empty">ยังไม่มีข่าวประชาสัมพันธ์</div>';
+      $('#homeEvents').innerHTML = events.slice(0,4).map(e => `<a class="surface p-3 d-block" href="${pageUrl('event-detail',{id:e.id})}"><strong>${h(e.title)}</strong><div class="small text-secondary">${h(e.startAt)} · ${h(e.location)}</div></a>`).join('') || '<div class="empty">ยังไม่มีกิจกรรม</div>';
+      
+      if (leaderboard.length > 0) {
+        let lbHtml = '<div class="card shadow-sm border-0 bg-white rounded-4 overflow-hidden"><div class="card-body p-4"><h4 class="card-title text-primary text-center mb-4"><i class="bi bi-trophy-fill text-warning fs-3"></i><br>Top 5 ผู้สะสมชั่วโมงสูงสุด</h4><div class="list-group list-group-flush">';
+        leaderboard.forEach((l, i) => {
+          lbHtml += `<div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-3 ${i<3?'border-bottom':''}"><div class="d-flex align-items-center"><div class="badge bg-${i===0?'warning':(i===1?'secondary':(i===2?'danger':'primary'))} rounded-circle me-3 p-2" style="width:35px;height:35px;display:flex;align-items:center;justify-content:center;font-size:1.1rem">${i+1}</div><div class="fw-bold fs-5">${h(l.name)}</div></div><span class="badge bg-primary rounded-pill fs-6 px-3 py-2">${l.hours} ชั่วโมง</span></div>`;
+        });
+        lbHtml += '</div></div></div>';
+        $('#homeLeaderboard').innerHTML = lbHtml;
+      }
+    } catch(err) {
+      $('#featuredCourses').innerHTML = '<div class="col-12"><div class="empty text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</div></div>';
+      $('#homeNews').innerHTML = '<div class="empty text-danger">เกิดข้อผิดพลาด</div>';
+      $('#homeEvents').innerHTML = '<div class="empty text-danger">เกิดข้อผิดพลาด</div>';
+    }
+  };
+  </script>
+</body>
+</html>

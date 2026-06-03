@@ -1,0 +1,133 @@
+<!doctype html><html lang="th"><head><base target="_top" href="<?= app.publishedUrl ?>"><title>เข้าสู่ห้องเรียน | <?= app.browserTitle ?></title><?!= include('style') ?>
+<style>
+  body { background: #0f172a; color: #f8fafc; }
+  .learn-header { background: #1e293b; border-bottom: 1px solid #334155; padding: 1rem 0; }
+  .video-container { max-width: 900px; margin: 2rem auto; }
+  .cert-container { max-width: 900px; margin: 0 auto 3rem auto; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 2rem; }
+  .form-control, .form-select { background: #0f172a; border-color: #334155; color: #f8fafc; }
+  .form-control:focus { background: #0f172a; color: #f8fafc; border-color: #3b82f6; }
+</style>
+</head>
+<body>
+<header class="learn-header">
+  <div class="container d-flex justify-content-between align-items-center">
+    <a href="?page=course-detail&id=<?= params.id || '' ?>" class="text-white text-decoration-none"><i class="bi bi-arrow-left"></i> กลับหน้ารายละเอียดหลักสูตร</a>
+    <div class="fw-bold fs-5" id="courseTitle">กำลังโหลด...</div>
+  </div>
+</header>
+<main>
+  <div class="container">
+    <div id="videoBox" class="video-container">
+      <div class="empty bg-dark text-secondary" style="height: 450px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">กำลังโหลดวิดีโอ...</div>
+    </div>
+    
+    <div class="cert-container" id="certBox" style="display:none;">
+      <h4 class="text-primary text-center mb-1"><i class="bi bi-award"></i> ฟอร์มขอรับวุฒิบัตร</h4>
+      <p class="text-secondary text-center mb-4">กรุณากรอกข้อมูลของคุณให้ครบถ้วนเพื่อรับวุฒิบัตรเมื่อเรียนจบ</p>
+      
+      <form id="certForm">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">คำนำหน้า</label>
+            <input id="certTitle" class="form-control" placeholder="เช่น นาย, นาง, นางสาว" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">ชื่อ</label>
+            <input id="certFirstName" class="form-control" placeholder="ชื่อจริง" required>
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">นามสกุล</label>
+            <input id="certLastName" class="form-control" placeholder="นามสกุล" required>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">อีเมล (สำหรับจัดส่งสำเนา)</label>
+            <input id="certEmail" type="email" class="form-control" placeholder="อีเมลของคุณ" required>
+          </div>
+        </div>
+        
+        <div class="alert alert-danger p-3 my-4 text-center">
+          <strong>⚠️ ช่วยตรวจสอบข้อมูลให้ถูกต้องก่อนส่งข้อมูลยืนยัน</strong><br>
+          เนื่องจากข้อมูลนี้จะถูกพิมพ์ลงบนวุฒิบัตรของคุณ
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
+          <i class="bi bi-check2-circle"></i> บันทึกจบหลักสูตรและรับวุฒิบัตร
+        </button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<?!= include('script') ?>
+<script>
+window.pageInit=async()=>{ 
+  try {
+    const courseId = param('id');
+    const data=await callApi('getCourse',{id:courseId}); 
+    const c=data.course, e=data.enrollment, u=data.user;
+    
+    if(!e || (e.status !== 'active' && e.status !== 'completed')) {
+      toast('คุณยังไม่มีสิทธิ์เข้าเรียนหลักสูตรนี้', 'danger');
+      setTimeout(() => location.href = pageUrl('course-detail', {id: courseId}), 2000);
+      return;
+    }
+    
+    $('#courseTitle').textContent = c.title;
+    
+    if(c.videoUrl) {
+      const urls = c.videoUrl.split('\n').map(u => u.trim()).filter(Boolean);
+      $('#videoBox').innerHTML = urls.map((u, i) => `
+        ${urls.length > 1 ? `<h5 class="mt-4 text-white">ตอนที่ ${i+1}</h5>` : ''}
+        <div class="ratio ratio-16x9 shadow-lg rounded overflow-hidden mb-4 position-relative" style="background:#000;">
+          <div class="position-absolute w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white z-0">
+            <div class="spinner-border text-primary mb-2" role="status"></div>
+            <span>กำลังเตรียมวิดีโอ...</span>
+          </div>
+          <iframe src="${h(processVideoUrl(u))}" allowfullscreen class="position-relative z-1" onload="this.style.backgroundColor='#000'"></iframe>
+        </div>
+      `).join('');
+    } else {
+      $('#videoBox').innerHTML = `<div class="alert alert-warning text-center">ไม่มีวิดีโอสำหรับหลักสูตรนี้</div>`;
+    }
+    
+    if (e.status === 'completed') {
+      $('#certBox').style.display = 'none';
+      $('#videoBox').insertAdjacentHTML('afterend', '<div class="alert alert-success text-center mt-3"><i class="bi bi-check-circle-fill"></i> คุณได้เรียนจบและขอวุฒิบัตรหลักสูตรนี้ไปแล้ว สามารถทบทวนบทเรียนได้ตลอดเวลา</div>');
+    } else if (String(e.vipNoCert) === 'true' || e.vipNoCert === true) {
+      $('#certBox').style.display = 'none';
+      $('#videoBox').insertAdjacentHTML('afterend', '<div class="alert alert-info text-center mt-3"><i class="bi bi-info-circle-fill"></i> คุณเข้าร่วมด้วยสิทธิ์เรียนฟรี VIP (ไม่รับวุฒิบัตร)</div>');
+    } else {
+      $('#certBox').style.display = 'block';
+    }
+    
+    $('#certTitle').value = u?.title || '';
+    $('#certFirstName').value = u?.firstName || '';
+    $('#certLastName').value = u?.lastName || '';
+    $('#certEmail').value = u?.email || '';
+    
+    $('#certForm').addEventListener('submit',async(evt)=>{ 
+      evt.preventDefault();
+      showGlobalLoading(); 
+      try{ 
+        const payload = {
+          courseId: c.id,
+          title: $('#certTitle').value,
+          firstName: $('#certFirstName').value,
+          lastName: $('#certLastName').value,
+          email: $('#certEmail').value
+        };
+        const cert=await callApi('completeCourse', payload); 
+        alert('รอรับวุฒิบัตรได้ที่ลิงก์นี้ได้เลย\nhttps://drive.google.com/drive/folders/140973gul1yVWQ5C8TPBx0EzXqqCMt-ek?usp=sharing');
+        location.reload();
+      }catch(err){ 
+        toast(err.message,'danger'); 
+        $('#globalLoader').classList.remove('active'); 
+      } 
+    });
+    
+  } catch (err) {
+    toast('เกิดข้อผิดพลาด: ' + err.message, 'danger');
+  }
+};
+</script>
+</body></html>

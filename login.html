@@ -1,0 +1,196 @@
+<!doctype html><html lang="th"><head><base target="_top" href="<?= app.publishedUrl ?>"><title>เข้าสู่ระบบ | <?= app.browserTitle ?></title><?!= include('style') ?></head>
+<body>
+<div class="topbar"><div id="ticker" class="ticker"></div></div>
+<nav class="navbar"><div class="container"><a class="navbar-brand d-flex align-items-center gap-2" href="?page=home"><img class="brand-logo" src="<?= app.logoUrl ?>"><span class="brand-name">ONLINE LEARNING</span></a><span id="userSlot"></span></div></nav>
+<main class="section"><div class="container" style="max-width:500px">
+  <div class="surface p-4 p-md-5">
+    <div class="text-center mb-4">
+      <img src="<?= app.logoUrl ?>" alt="ONLINE LEARNING" style="height:80px">
+      <h3 class="mt-3" id="formTitle">เข้าสู่ระบบ</h3>
+    </div>
+    
+    <div id="loginStatus"></div>
+
+    <form id="loginForm">
+      <div class="mb-3">
+        <label class="form-label">ชื่อผู้ใช้ / รหัสประจำตัว (หรือ Email)</label>
+        <input type="text" name="username" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">รหัสผ่าน</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mb-3">เข้าสู่ระบบ</button>
+      <div class="text-center mt-3 d-flex flex-column gap-2">
+        <div><span>ยังไม่มีบัญชีใช่หรือไม่?</span> <a href="#" id="showRegister">สมัครสมาชิกใหม่</a></div>
+        <div><a href="#" id="showForgot" class="text-muted text-decoration-underline">ลืมรหัสผ่าน?</a></div>
+      </div>
+    </form>
+
+    <form id="registerForm" class="d-none">
+      <div class="row g-2 mb-2">
+        <div class="col-4">
+          <label class="form-label">คำนำหน้า</label>
+          <select name="title" class="form-select" required>
+            <option value="">เลือก...</option>
+            <option value="นาย">นาย</option>
+            <option value="นาง">นาง</option>
+            <option value="นางสาว">นางสาว</option>
+            <option value="ดร.">ดร.</option>
+            <option value="ผศ.ดร.">ผศ.ดร.</option>
+            <option value="รศ.ดร.">รศ.ดร.</option>
+            <option value="ศ.ดร.">ศ.ดร.</option>
+            <option value="ครู">ครู</option>
+            <option value="ว่าที่ ร.ต.">ว่าที่ ร.ต.</option>
+            <option value="ว่าที่ ร.ต.หญิง">ว่าที่ ร.ต.หญิง</option>
+            <option value="">อื่นๆ (ไม่ระบุ)</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <label class="form-label">ชื่อ</label>
+          <input type="text" name="firstName" class="form-control" required>
+        </div>
+        <div class="col-4">
+          <label class="form-label">นามสกุล</label>
+          <input type="text" name="lastName" class="form-control" required>
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">เบอร์โทรศัพท์</label>
+        <input type="tel" name="phone" class="form-control" required>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">อีเมล (ใช้สำหรับเข้าสู่ระบบ)</label>
+        <input type="email" name="email" class="form-control" required>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">รหัสผ่านที่ต้องการ</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">ท่านทราบข่าวสารจากช่องทางใด</label>
+        <select name="source" class="form-select" required>
+          <option value="">เลือกช่องทาง...</option>
+          <option value="Facebook">Facebook</option>
+          <option value="Line">Line</option>
+          <option value="Website">Website</option>
+          <option value="เพื่อนแนะนำ">เพื่อนแนะนำ</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mb-3">สมัครสมาชิก</button>
+      <div class="text-center">
+        <span>มีบัญชีอยู่แล้ว?</span> <a href="#" id="showLogin">เข้าสู่ระบบ</a>
+      </div>
+    </form>
+
+    <form id="forgotForm" class="d-none">
+      <div class="mb-3">
+        <label class="form-label">ใส่อีเมลของคุณ</label>
+        <input type="email" name="email" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-warning w-100 mb-3">ส่งรหัสผ่านใหม่ไปที่อีเมล</button>
+      <div class="text-center">
+        <a href="#" id="showLoginFromForgot">กลับไปเข้าสู่ระบบ</a>
+      </div>
+    </form>
+
+  </div>
+</div></main>
+<?!= include('script') ?>
+<script>
+window.pageInit = async () => {
+  if (getToken()) {
+    try {
+      const user = await callApi('getCurrentUser');
+      $('#loginForm').classList.add('d-none');
+      $('#formTitle').textContent = 'ยินดีต้อนรับกลับมา!';
+      $('#loginStatus').innerHTML = `<div class="alert alert-success">เข้าสู่ระบบแล้ว: <strong>${h(user.name||user.email)}</strong></div><div class="d-flex flex-column justify-content-center gap-2"><a class="btn btn-primary w-100" href="?page=dashboard">แดชบอร์ดผู้เรียน</a>${user.role === 'admin' || user.role === 'super_admin' ? '<a class="btn btn-outline-primary w-100" href="?page=admin">Admin Backoffice</a>' : ''}<button class="btn btn-light w-100 mt-2" onclick="logout()">ออกจากระบบ</button></div>`;
+    } catch(err) {
+      localStorage.removeItem('appToken');
+    }
+  }
+
+  $('#showRegister').addEventListener('click', (e) => {
+    e.preventDefault();
+    $('#loginForm').classList.add('d-none');
+    $('#registerForm').classList.remove('d-none');
+    $('#formTitle').textContent = 'สมัครสมาชิกใหม่';
+  });
+
+  $('#showLogin').addEventListener('click', (e) => {
+    e.preventDefault();
+    $('#registerForm').classList.add('d-none');
+    $('#forgotForm').classList.add('d-none');
+    $('#loginForm').classList.remove('d-none');
+    $('#formTitle').textContent = 'เข้าสู่ระบบ';
+  });
+
+  $('#showForgot')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    $('#loginForm').classList.add('d-none');
+    $('#forgotForm').classList.remove('d-none');
+    $('#formTitle').textContent = 'ลืมรหัสผ่าน';
+  });
+
+  $('#showLoginFromForgot')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    $('#forgotForm').classList.add('d-none');
+    $('#loginForm').classList.remove('d-none');
+    $('#formTitle').textContent = 'เข้าสู่ระบบ';
+  });
+
+  $('#loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'กรุณารอซักครู่...';
+      showGlobalLoading();
+      $('#globalLoader').querySelector('.text-primary').textContent = 'กรุณารอซักครู่...';
+      const res = await callApi('login', formData(e.target));
+      localStorage.setItem('appToken', res.token);
+      location.href = '?page=home';
+    } catch (err) {
+      $('#globalLoader').classList.remove('active');
+      toast(err.message, 'danger');
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+    }
+  });
+
+  $('#registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'กรุณารอซักครู่...';
+      showGlobalLoading();
+      $('#globalLoader').querySelector('.text-primary').textContent = 'กรุณารอซักครู่...';
+      const res = await callApi('register', formData(e.target));
+      localStorage.setItem('appToken', res.token);
+      toast('สมัครสมาชิกเรียบร้อยแล้ว!', 'success');
+      location.href = '?page=home';
+    } catch (err) {
+      $('#globalLoader').classList.remove('active');
+      toast(err.message, 'danger');
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = false; btn.textContent = 'สมัครสมาชิก';
+    }
+  });
+
+  $('#forgotForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = true; btn.textContent = 'กำลังส่ง...';
+      await callApi('forgotPassword', formData(e.target));
+      toast('ส่งรหัสผ่านใหม่ไปที่อีเมลแล้ว กรุณาตรวจสอบกล่องข้อความ', 'success');
+      setTimeout(() => location.reload(), 3000);
+    } catch (err) {
+      toast(err.message, 'danger');
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.disabled = false; btn.textContent = 'ส่งรหัสผ่านใหม่ไปที่อีเมล';
+    }
+  });
+};
+</script>
+</body></html>

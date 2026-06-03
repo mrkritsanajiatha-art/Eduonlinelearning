@@ -1,0 +1,7 @@
+<!doctype html><html lang="th"><head><base target="_top" href="<?= app.publishedUrl ?>"><title>กิจกรรม | <?= app.browserTitle ?></title><?!= include('style') ?></head>
+<body><div class="topbar"><div id="ticker" class="ticker"></div></div><nav class="navbar"><div class="container"><a class="navbar-brand d-flex align-items-center gap-2" href="?page=home"><img class="brand-logo" src="<?= app.logoUrl ?>"><span class="brand-name">ONLINE LEARNING</span></a><span id="userSlot"></span></div></nav>
+<main class="section"><div class="container"><div class="d-flex justify-content-between align-items-end mb-4"><div><h1>กิจกรรม</h1><p class="text-secondary mb-0">อบรม สัมมนา ประชุมวิชาการ และกิจกรรมเครือข่าย</p></div><select id="eventType" class="form-select" style="max-width:220px"><option value="">ทุกประเภท</option><option value="free">ฟรี</option><option value="paid">เสียค่าใช้จ่าย</option><option value="vip">VIP</option></select></div><div id="eventList" class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3"></div></div></main><?!= include('script') ?>
+<script>
+let events=[]; function render(){const type=$('#eventType').value; const rows=events.filter(e=>!type||e.type===type); $('#eventList').innerHTML=rows.map(eventCard).join('')||'<div class="col-12"><div class="empty">ยังไม่มีกิจกรรม</div></div>';}
+window.pageInit=async()=>{setLoading('#eventList'); events=await callApi('listEvents',{}); render(); $('#eventType').addEventListener('change',render);};
+</script></body></html>

@@ -1,0 +1,150 @@
+<!doctype html><html lang="th"><head><base target="_top" href="<?= app.publishedUrl ?>"><title>ชำระเงิน | <?= app.browserTitle ?></title><?!= include('style') ?></head>
+<body>
+<div class="topbar"><div id="ticker" class="ticker"></div></div>
+<nav class="navbar"><div class="container"><a class="navbar-brand d-flex align-items-center gap-2" href="?page=home"><img class="brand-logo" src="<?= app.logoUrl ?>"><span class="brand-name">ONLINE LEARNING</span></a><span id="userSlot"></span></div></nav>
+<main class="section"><div class="container" style="max-width:500px">
+  <div class="surface p-4 p-md-5 text-center">
+    <h3 class="mb-4">ดำเนินการชำระเงิน</h3>
+    <div id="paymentDetails" class="mb-4"></div>
+    <div class="bg-light p-3 rounded mb-4">
+      <img class="qr-img mb-3" src="<?= app.paymentQrUrl ?>" style="max-height: 250px; object-fit: contain;">
+      <p class="small text-secondary mb-0">แสกน QR Code เพื่อชำระเงิน</p>
+      <div class="mt-3 text-start bg-white p-3 border rounded">
+        <p class="mb-1"><strong>ธนาคาร:</strong> <?= app.payment.bank ?></p>
+        <p class="mb-1"><strong>เลขบัญชี:</strong> <?= app.payment.accountNumber ?></p>
+        <p class="mb-0"><strong>ชื่อบัญชี:</strong> <?= app.payment.accountName ?></p>
+      </div>
+    </div>
+    <div class="text-start mb-3">
+      <label class="form-label fw-bold">1. ตรวจสอบสิทธิ์ VIP (สำหรับสมาชิก VIP)</label>
+      <input type="text" id="vipLastName" class="form-control" placeholder="กรอกนามสกุลของคุณ (เพื่อตรวจสอบสิทธิ์เรียนฟรี)">
+    </div>
+    <div class="text-start mb-4">
+      <label class="form-label fw-bold">2. อัปโหลดสลิปชำระเงิน</label>
+      <input id="slipFile" type="file" class="form-control" accept="image/*,application/pdf">
+      <small class="text-danger">*สมาชิก VIP ไม่ต้องแนบสลิป หากได้สิทธิ์เรียนฟรี</small>
+    </div>
+    <button id="submitPaymentBtn" class="btn btn-primary w-100 fw-bold btn-lg">ยืนยันการทำรายการ</button>
+  </div>
+</div></main>
+<?!= include('script') ?>
+<script>
+window.pageInit = async () => {
+  const courseId = param('courseId');
+  const isCartMode = param('cart') === '1';
+  const applyVip = param('vip') === '1';
+  let targetIds = [];
+  let totalAmount = 0;
+  
+  try {
+    const user = await callApi('getCurrentUser').catch(() => null);
+    const isVipUser = user && user.vipStatus === 'approved';
+    const prefillVip = param('vipLastName');
+    const hasVipDiscount = isVipUser || applyVip || !!prefillVip;
+    
+    if (prefillVip) {
+      $('#vipLastName').value = prefillVip;
+      $('#vipLastName').readOnly = true;
+    }
+    
+    if (isCartMode) {
+      const cart = getCart();
+      if (cart.length === 0) throw new Error('ตะกร้าสินค้าว่างเปล่า');
+      targetIds = cart.map(c => c.id);
+      let originalTotal = cart.reduce((s, c) => s + Number(c.price || 0), 0);
+      let discount = hasVipDiscount ? originalTotal * 0.3 : 0;
+      totalAmount = originalTotal - discount;
+      
+      $('#paymentDetails').innerHTML = `
+        <p class="mb-1 text-secondary">ชำระค่าหลักสูตร (${cart.length} รายการ)</p>
+        <div class="small text-start mb-2 bg-light p-2 rounded">
+          ${cart.map(c => `<div>- ${h(c.title)}</div>`).join('')}
+        </div>
+        ${applyVip ? `<div class="alert alert-warning py-1 mb-2 small"><i class="bi bi-star-fill"></i> สมัคร VIP (ส่วนลด 30% รวมแล้ว)</div>` : ''}
+        <h3 class="text-danger mt-2">ยอดสุทธิ: ${money(totalAmount)}</h3>
+      `;
+    } else if (courseId) {
+      const data = await callApi('getCourse', { id: courseId });
+      const c = data.course;
+      targetIds = [c.id];
+      totalAmount = hasVipDiscount ? Number(c.price || 0) * 0.7 : Number(c.price || 0);
+      $('#paymentDetails').innerHTML = `
+        <p class="mb-1 text-secondary">ชำระค่าหลักสูตร</p>
+        <h5 class="mb-2">${h(c.title)}</h5>
+        ${hasVipDiscount ? `<div class="badge bg-warning text-dark mb-2">หักส่วนลด VIP 30%</div>` : ''}
+        <h3 class="text-danger">ยอดชำระ: ${money(totalAmount)}</h3>
+      `;
+    } else {
+      throw new Error('ไม่พบข้อมูลหลักสูตรที่ต้องการชำระเงิน');
+    }
+    
+    $('#submitPaymentBtn').addEventListener('click', async () => {
+      const file = $('#slipFile').files[0];
+      const vipLastName = $('#vipLastName').value.trim();
+      
+      if (!file && !vipLastName) return toast('กรุณาเลือกไฟล์สลิป หรือ กรอกนามสกุล VIP', 'danger');
+      if (applyVip && !file) return toast('กรุณาเลือกไฟล์สลิปสำหรับการสมัคร VIP', 'danger');
+
+      showGlobalLoading();
+      $('#globalLoader').querySelector('.text-primary').textContent = 'กำลังดำเนินการ กรุณารอซักครู่...';
+      try {
+        let allFree = true;
+        for (let id of targetIds) {
+          const enr = await callApi('enrollCourse', { courseId: id, vipLastName: vipLastName });
+          if (enr.status === 'pending_payment') allFree = false;
+        }
+        
+        if (allFree) {
+          if (isCartMode) saveCart([]); // Clear cart
+          $('#globalLoader').classList.remove('active');
+          $('.surface').innerHTML = `
+            <div class="text-center py-5">
+              <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+              <h3 class="mt-3">ยืนยันสิทธิ์ VIP เรียบร้อย</h3>
+              <p class="text-secondary fs-5">คุณสามารถเข้าเรียนได้ทันที</p>
+              <a href="?page=dashboard" class="btn btn-primary mt-3 px-5">เข้าสู่ห้องเรียน</a>
+            </div>
+          `;
+          return;
+        }
+
+        if (!file) {
+          $('#globalLoader').classList.remove('active');
+          return toast('สิทธิ์ VIP ไม่ถูกต้อง หรือหลักสูตรนี้ไม่ฟรี กรุณาแนบสลิปชำระเงิน', 'danger');
+        }
+
+        const base64 = await fileToBase64(file);
+        
+        await callApi('submitPaymentSlip', { 
+          courseId: targetIds.join(','), 
+          amount: totalAmount, 
+          type: applyVip ? 'cart_with_vip' : 'cart', 
+          fileName: file.name, 
+          mimeType: file.type, 
+          slipBase64: base64,
+          applyVip: applyVip
+        });
+        
+        if (isCartMode) saveCart([]); // Clear cart
+        
+        $('#globalLoader').classList.remove('active');
+        $('.surface').innerHTML = `
+          <div class="text-center py-5">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+            <h3 class="mt-3">ส่งสลิปเรียบร้อย</h3>
+            <p class="text-secondary fs-5"><strong>ลงทะเบียนสำเร็จ รอแอดมินอนุมัติ</strong></p>
+            <a href="?page=home" class="btn btn-primary mt-3 px-5">ตกลง</a>
+          </div>
+        `;
+      } catch (err) {
+        $('#globalLoader').classList.remove('active');
+        toast(err.message, 'danger');
+      }
+    });
+  } catch(err) {
+    $('#paymentDetails').innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
+    $('#submitPaymentBtn').disabled = true;
+  }
+};
+</script>
+</body></html>

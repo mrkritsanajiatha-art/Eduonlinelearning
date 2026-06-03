@@ -1,0 +1,117 @@
+<!doctype html><html lang="th"><head><base target="_top" href="<?= app.publishedUrl ?>"><title>ตะกร้าสินค้า | <?= app.browserTitle ?></title><?!= include('style') ?></head>
+<body>
+<div class="topbar"><div id="ticker" class="ticker"></div></div>
+<nav class="navbar"><div class="container"><a class="navbar-brand d-flex align-items-center gap-2" href="?page=home"><img class="brand-logo" src="<?= app.logoUrl ?>"><span class="brand-name">ONLINE LEARNING</span></a><span id="userSlot"></span></div></nav>
+<main class="section"><div class="container">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <h2 class="mb-4"><i class="bi bi-cart3"></i> ตะกร้าสินค้าของคุณ</h2>
+      <div class="surface p-4" id="cartItemsBox">
+        <div class="empty text-secondary py-5">กำลังโหลด...</div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="surface p-4 position-sticky" style="top: 100px;">
+        <h4 class="mb-3">สรุปคำสั่งซื้อ</h4>
+        
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-secondary">ยอดรวม (ราคาปกติ)</span>
+          <span id="summaryOriginal" class="fw-bold">0.00 ฿</span>
+        </div>
+        
+        <div id="vipDiscountRow" class="d-flex justify-content-between mb-2 text-danger" style="display:none !important;">
+          <span><i class="bi bi-star-fill text-warning"></i> ส่วนลด VIP (30%)</span>
+          <span id="summaryDiscount" class="fw-bold">-0.00 ฿</span>
+        </div>
+        
+        <hr>
+        
+        <div class="d-flex justify-content-between mb-4">
+          <span class="fs-5 fw-bold">ยอดสุทธิ</span>
+          <span id="summaryTotal" class="fs-4 fw-bold text-primary">0.00 ฿</span>
+        </div>
+
+        <div class="form-check mb-4 bg-light p-3 rounded border border-warning" id="vipCheckboxWrapper">
+          <input class="form-check-input ms-1" type="checkbox" id="vipCheck">
+          <label class="form-check-label ms-2 fw-bold text-dark" for="vipCheck">
+            <i class="bi bi-star-fill text-warning"></i> สมัครสมาชิก VIP (รับส่วนลด 30% ทันที)
+          </label>
+        </div>
+        
+        <button id="checkoutBtn" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">ดำเนินการชำระเงิน</button>
+      </div>
+    </div>
+  </div>
+</div></main>
+<?!= include('script') ?>
+<script>
+window.pageInit=async()=>{ 
+  const user = await callApi('getCurrentUser').catch(() => null);
+  const cart = getCart();
+  
+  const renderCart = () => {
+    if (cart.length === 0) {
+      $('#cartItemsBox').innerHTML = `<div class="empty text-secondary py-5"><i class="bi bi-cart-x fs-1 d-block mb-3"></i>ตะกร้าของคุณว่างเปล่า<br><br><a href="?page=courses" class="btn btn-primary">เลือกดูหลักสูตร</a></div>`;
+      $('#checkoutBtn').disabled = true;
+      return;
+    }
+    
+    let html = '';
+    cart.forEach(item => {
+      html += `
+        <div class="d-flex align-items-center justify-content-between py-3 border-bottom cart-item">
+          <div>
+            <h5 class="mb-1">${h(item.title)}</h5>
+            <div class="text-secondary small">${item.type === 'paid' ? 'มีค่าใช้จ่าย' : 'ฟรี'}</div>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <div class="fw-bold fs-5 text-primary">${money(item.price)}</div>
+            <button class="btn btn-outline-danger btn-sm px-2" onclick="removeItem('${item.id}')"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      `;
+    });
+    $('#cartItemsBox').innerHTML = html;
+    calculateTotal();
+  };
+  
+  window.removeItem = (id) => {
+    removeFromCart(id);
+    const index = cart.findIndex(c => c.id === id);
+    if (index !== -1) cart.splice(index, 1);
+    renderCart();
+  };
+  
+  const calculateTotal = () => {
+    let originalTotal = cart.reduce((sum, item) => sum + Number(item.price || 0), 0);
+    let isVip = (user && user.vipStatus === 'approved') || $('#vipCheck').checked;
+    let discount = isVip ? originalTotal * 0.3 : 0;
+    let total = originalTotal - discount;
+    
+    $('#summaryOriginal').textContent = money(originalTotal);
+    $('#summaryDiscount').textContent = '-' + money(discount);
+    $('#summaryTotal').textContent = money(total);
+    
+    if (isVip && originalTotal > 0) {
+      $('#vipDiscountRow').style.setProperty('display', 'flex', 'important');
+    } else {
+      $('#vipDiscountRow').style.setProperty('display', 'none', 'important');
+    }
+  };
+  
+  $('#vipCheck').addEventListener('change', calculateTotal);
+  
+  if (user && user.vipStatus === 'approved') {
+    $('#vipCheckboxWrapper').style.display = 'none';
+  }
+  
+  $('#checkoutBtn').addEventListener('click', () => {
+    if (cart.length === 0) return;
+    const isVipCheckout = $('#vipCheck').checked;
+    location.href = pageUrl('payment', { cart: '1', vip: isVipCheckout ? '1' : '0' });
+  });
+  
+  renderCart();
+};
+</script>
+</body></html>

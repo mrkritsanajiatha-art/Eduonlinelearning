@@ -1,0 +1,6 @@
+<!doctype html><html lang="th"><head><base target="_top" href="<?= app.publishedUrl ?>"><title>ข่าวสาร | <?= app.browserTitle ?></title><?!= include('style') ?></head>
+<body><div class="topbar"><div id="ticker" class="ticker"></div></div><nav class="navbar"><div class="container"><a class="navbar-brand d-flex align-items-center gap-2" href="?page=home"><img class="brand-logo" src="<?= app.logoUrl ?>"><span class="brand-name">ONLINE LEARNING</span></a><span id="userSlot"></span></div></nav>
+<main class="section"><div class="container"><h1>ข่าวสาร</h1><div id="newsList" class="vstack gap-3"></div></div></main><?!= include('script') ?>
+<script>
+window.pageInit=async()=>{setLoading('#newsList'); const rows=await callApi('listNews',{}); $('#newsList').innerHTML=rows.map(n=>`<article id="${h(n.id)}" class="surface p-4"><div class="d-flex justify-content-between gap-3"><div>${badge(n.category||'ข่าวสาร')} ${n.pinned?badge('ปักหมุด','gold'):''}</div><span class="small text-secondary">${h(n.createdAt)}</span></div><h2 class="mt-2">${h(n.title)}</h2>${n.imageUrl?`<img src="${h(n.imageUrl)}" class="img-fluid rounded border mb-3">`:''}<p class="lead">${h(n.summary)}</p><div>${h(n.content).replace(/\n/g,'<br>')}</div></article>`).join('')||'<div class="empty">ยังไม่มีข่าวสาร</div>';};
+</script></body></html>

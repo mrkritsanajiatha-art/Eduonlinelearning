@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="th">
+<head><base target="_top" href="<?= app.publishedUrl ?>"><title>Admin Backoffice | <?= app.browserTitle ?></title><?!= include('style') ?></head>
+<body>
+<div class="topbar"><div id="ticker" class="ticker"></div></div>
+<nav class="navbar sticky-top"><div class="container-fluid px-3"><a class="navbar-brand d-flex align-items-center gap-2" href="?page=home"><img class="brand-logo" src="<?= app.logoUrl ?>"><span><span class="brand-name">ONLINE LEARNING</span><span class="brand-subtitle">Admin Backoffice</span></span></a><span id="userSlot"></span></div></nav>
+<main class="section">
+  <div class="container-fluid px-3">
+    <div class="admin-shell">
+      <aside class="surface p-2 admin-nav">
+        <div class="nav nav-pills flex-lg-column" id="adminTabs" role="tablist">
+          <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tabDashboard">Dashboard</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabCourses">Courses</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabPayments">Payments</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabVip">VIP Requests</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabEvents">Events</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabUsers">Users</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabNews">News</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabForms">Forms</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabBroadcast">Broadcast Email</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabMedia">Media Library</button>
+          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabLogs">Activity Logs</button>
+        </div>
+      </aside>
+      <section class="tab-content">
+        <div id="tabDashboard" class="tab-pane fade show active"><h1>Dashboard</h1><div id="adminStats" class="row row-cols-2 row-cols-xl-4 g-3"></div></div>
+        <div id="tabCourses" class="tab-pane fade"><h1>Courses</h1><form id="courseForm" class="surface p-4 mb-4"><div class="row g-3"><input type="hidden" name="id"><input type="hidden" name="coverFileId"><input type="hidden" name="documentFileId">
+          <div class="col-md-6"><label class="form-label">ชื่อหลักสูตร</label><input name="title" class="form-control" required></div>
+          <div class="col-md-3"><label class="form-label">วิทยากร</label><input name="instructor" class="form-control" required></div>
+          <div class="col-md-3"><label class="form-label">หมวดหมู่</label><input name="category" class="form-control" required></div>
+          
+          <div class="col-md-2"><label class="form-label">ชั่วโมง</label><input name="hours" type="number" class="form-control" required></div>
+          <div class="col-md-2"><label class="form-label">ราคา (บาท)</label><input name="price" type="number" class="form-control"></div>
+          <div class="col-md-2"><label class="form-label">ประเภท</label><select name="type" class="form-select"><option value="free">Free</option><option value="paid">Paid</option><option value="vip">VIP</option></select></div>
+          <div class="col-md-3"><label class="form-label">สถานะ</label><select name="status" class="form-select"><option value="published">Published</option><option value="draft">Draft</option></select></div>
+          <div class="col-md-3 d-flex align-items-end"><div class="form-check mb-2"><input name="featured" value="true" class="form-check-input" type="checkbox" id="featured"><label class="form-check-label" for="featured">ยอดนิยม (Featured)</label></div></div>
+          
+          <div class="col-md-6"><label class="form-label">Cover Image URL (ลิงก์รูปหน้าปก)</label><input name="coverUrl" class="form-control"></div>
+          <div class="col-md-6">
+            <label class="form-label">Video URLs (ลิงก์วีดีโอเรียน)</label>
+            <div id="videoUrlList"></div>
+            <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addVideoUrlInput('')">+ เพิ่มวิดีโอ</button>
+            <input type="hidden" name="videoUrl">
+          </div>
+          <div class="col-12"><label class="form-label">รายละเอียด</label><textarea name="description" class="form-control" rows="3" required></textarea></div>
+          <div class="col-12 text-end"><button type="button" class="btn btn-outline-secondary me-2" onclick="$('#courseForm').reset(); $('[name=id]').value=''; $('[name=coverFileId]').value=''; $('[name=documentFileId]').value=''">ล้างข้อมูล</button><button class="btn btn-primary px-4">บันทึกข้อมูล</button></div>
+        </div></form><div id="courseAdminList"></div></div>
+        <div id="tabPayments" class="tab-pane fade"><h1>Payments</h1><div id="paymentList"></div></div>
+        <div id="tabVip" class="tab-pane fade"><h1>VIP Requests</h1><div id="vipList"></div></div>
+        <div id="tabEvents" class="tab-pane fade"><h1>Events</h1><form id="eventForm" class="surface p-3 mb-3"><div class="row g-2"><input type="hidden" name="id"><div class="col-md-4"><input name="title" class="form-control" placeholder="ชื่อกิจกรรม" required></div><div class="col-md-3"><input name="speaker" class="form-control" placeholder="วิทยากร" required></div><div class="col-md-3"><input name="location" class="form-control" placeholder="สถานที่" required></div><div class="col-md-2"><input name="capacity" type="number" class="form-control" placeholder="ที่นั่ง" required></div><div class="col-md-3"><input name="startAt" type="datetime-local" class="form-control" required></div><div class="col-md-3"><input name="endAt" type="datetime-local" class="form-control"></div><div class="col-md-2"><input name="price" type="number" class="form-control" placeholder="ราคา"></div><div class="col-md-2"><select name="type" class="form-select"><option value="free">ฟรี</option><option value="paid">เสียค่าใช้จ่าย</option><option value="vip">VIP</option></select></div><div class="col-md-4"><input name="imageUrl" class="form-control" placeholder="Image URL"></div><div class="col-12"><textarea name="description" class="form-control" rows="3" placeholder="รายละเอียด" required></textarea></div><div class="col-md-2"><select name="status" class="form-select"><option value="published">Published</option><option value="draft">Draft</option></select></div><div class="col-md-2"><button class="btn btn-primary w-100">บันทึก</button></div></div></form><div id="eventAdminList"></div></div>
+        <div id="tabUsers" class="tab-pane fade"><h1>Users</h1><div id="userList"></div></div>
+        <div id="tabNews" class="tab-pane fade"><h1>News</h1><form id="newsForm" class="surface p-3 mb-3"><div class="row g-2"><input type="hidden" name="id"><div class="col-md-5"><input name="title" class="form-control" placeholder="หัวข้อข่าว" required></div><div class="col-md-3"><input name="category" class="form-control" placeholder="หมวดหมู่" required></div><div class="col-md-4"><input name="imageUrl" class="form-control" placeholder="Image URL"></div><div class="col-12"><input name="summary" class="form-control" placeholder="สรุปข่าว" required></div><div class="col-12"><textarea name="content" class="form-control" rows="4" placeholder="เนื้อหา" required></textarea></div><div class="col-md-2 form-check ms-2 pt-2"><input name="pinned" value="true" class="form-check-input" type="checkbox" id="newsPinned"><label class="form-check-label" for="newsPinned">ปักหมุด</label></div><div class="col-md-2 form-check ms-2 pt-2"><input name="published" value="true" class="form-check-input" type="checkbox" id="newsPub" checked><label class="form-check-label" for="newsPub">เผยแพร่</label></div><div class="col-md-2"><button class="btn btn-primary w-100">บันทึก</button></div></div></form><div id="newsAdminList"></div></div>
+        <div id="tabForms" class="tab-pane fade"><h1>Forms</h1><form id="formBuilder" class="surface p-3 mb-3"><div class="row g-2"><div class="col-md-4"><input name="title" class="form-control" placeholder="ชื่อแบบฟอร์ม" required></div><div class="col-md-2"><select name="formType" class="form-select"><option>Pre Test</option><option>Post Test</option><option>แบบประเมิน</option><option>แบบสอบถาม</option><option>แบบติดตามผล</option></select></div><div class="col-md-2"><input name="passingScore" type="number" class="form-control" placeholder="คะแนนผ่าน"></div><div class="col-12"><textarea name="description" class="form-control" placeholder="รายละเอียด"></textarea></div><div class="col-12"><textarea name="questionsRaw" class="form-control" rows="5" placeholder='[{"id":"q1","label":"คำถาม","type":"text","correctAnswer":""}]' required></textarea></div><div class="col-md-2"><button class="btn btn-primary w-100">บันทึก</button></div></div></form><div id="formList"></div></div>
+        <div id="tabBroadcast" class="tab-pane fade"><h1>Broadcast Email</h1><form id="broadcastForm" class="surface p-3"><div class="row g-2"><div class="col-md-8"><input name="subject" class="form-control" placeholder="หัวข้อ" required></div><div class="col-md-4"><select name="targetGroup" class="form-select"><option value="all">สมาชิกทั้งหมด</option><option value="vip">สมาชิก VIP</option><option value="learners">ผู้เรียน</option><option value="event_participants">ผู้เข้าร่วมกิจกรรม</option></select></div><div class="col-12"><textarea name="body" class="form-control" rows="6" placeholder="เนื้อหา HTML" required></textarea></div><div class="col-md-5"><input name="linkUrl" class="form-control" placeholder="ลิงก์"></div><div class="col-md-3"><input name="imageFileId" class="form-control" placeholder="Image File ID"></div><div class="col-md-3"><input name="attachmentFileId" class="form-control" placeholder="Attachment File ID"></div><div class="col-md-1"><button class="btn btn-primary w-100">ส่ง</button></div></div></form></div>
+        <div id="tabMedia" class="tab-pane fade"><h1>Media Library</h1><form id="mediaForm" class="surface p-3 mb-3"><div class="row g-2"><div class="col-md-4"><input id="mediaFile" type="file" class="form-control" required></div><div class="col-md-3"><input name="category" class="form-control" value="MediaLibrary"></div><div class="col-md-2"><button class="btn btn-primary w-100">อัปโหลด</button></div><div class="col-md-3"><button id="setupBtn" type="button" class="btn btn-outline-primary w-100">Setup Database & Assets</button></div></div></form><div id="mediaList"></div></div>
+        <div id="tabLogs" class="tab-pane fade"><h1>Activity Logs</h1><div id="logList"></div></div>
+      </section>
+    </div>
+  </div>
+</main>
+<?!= include('script') ?>
+<script>
+function table(headers, rows){return `<div class="surface p-2 table-responsive"><table class="table table-sm mb-0"><thead><tr>${headers.map(x=>`<th>${h(x)}</th>`).join('')}</tr></thead><tbody>${rows.join('')||`<tr><td colspan="${headers.length}">ไม่มีข้อมูล</td></tr>`}</tbody></table></div>`;}
+async function loadAdminStats(){const d=await callApi('adminDashboard'); const s=[['สมาชิกทั้งหมด',d.publicStats.users],['จำนวนคอร์ส',d.publicStats.courses],['จำนวนกิจกรรม',d.events],['ผู้เรียนทั้งหมด',d.publicStats.graduates],['ผู้เข้าร่วมกิจกรรม',d.eventRegistrations],['เกียรติบัตรทั้งหมด',d.publicStats.certificates],['สมาชิก VIP',d.publicStats.vip],['รายได้รวม',money(d.revenueTotal)],['รายได้รายเดือน',money(d.revenueMonth)],['รอสลิป',d.pendingPayments],['รอ VIP',d.pendingVip]]; $('#adminStats').innerHTML=s.map(x=>`<div class="col"><div class="stat"><span>${h(x[0])}</span><strong>${h(x[1])}</strong></div></div>`).join('');}
+let adminCourses=[];
+async function loadCourses(){adminCourses=await callApi('listCourses',{includeDrafts:true}); $('#courseAdminList').innerHTML=table(['ชื่อ','ประเภท','ราคา','สถานะ','จัดการ'],adminCourses.map(c=>`<tr><td>${h(c.title)}</td><td>${h(c.type)}</td><td>${money(c.price)}</td><td>${h(c.status)}</td><td><button class="btn btn-sm btn-outline-primary" onclick="editCourse('${h(c.id)}')">แก้ไข</button> <button class="btn btn-sm btn-outline-danger" onclick="deleteCourse('${h(c.id)}')">ลบ</button></td></tr>`));}
+function addVideoUrlInput(val=''){ const div=document.createElement('div'); div.className='d-flex gap-1 mb-1'; div.innerHTML=`<input class="form-control video-url-item" value="${h(val)}"><button type="button" class="btn btn-sm btn-outline-danger" onclick="this.parentElement.remove()">x</button>`; $('#videoUrlList').appendChild(div); }
+function editCourse(id){const c=adminCourses.find(x=>x.id===id); if(!c)return; const f=$('#courseForm'); Object.keys(c).forEach(k=>{if(f.elements[k]){if(f.elements[k].type==='checkbox') f.elements[k].checked=(String(c[k])==='true'); else f.elements[k].value=c[k];}}); const vList = document.getElementById('videoUrlList'); if (vList) { vList.innerHTML = ''; if (c.videoUrl) { c.videoUrl.split('\n').forEach(u => addVideoUrlInput(u.trim())); } else { addVideoUrlInput(''); } } window.scrollTo(0, f.offsetTop);}
+async function deleteCourse(id){await callApi('deleteCourse',{id}); toast('ลบหลักสูตรแล้ว'); loadCourses();}
+async function loadPayments(){
+  const rows = await callApi('listPayments',{}); 
+  $('#paymentList').innerHTML = table(
+    ['ID','ผู้ใช้','ประเภท','ยอด','สถานะ','จัดการ'],
+    rows.map(p=>`<tr>
+      <td>${h(p.id)}<br>${p.slipFileId ? `<a href="https://drive.google.com/open?id=${p.slipFileId}" target="_blank" class="small text-primary">ดูสลิป</a>` : ''}</td>
+      <td>${h(p.userEmail)}</td>
+      <td>${h(p.type)}</td>
+      <td>${money(p.amount)}</td>
+      <td>${h(p.status)}</td>
+      <td>${p.status==='pending' ? `<button class="btn btn-sm btn-success mb-1" onclick="reviewPayment('${h(p.id)}','approved')">อนุมัติ</button><br><button class="btn btn-sm btn-outline-danger" onclick="reviewPayment('${h(p.id)}','rejected')">ปฏิเสธ</button>` : ''}</td>
+    </tr>`)
+  );
+}
+async function reviewPayment(id,status){await callApi('reviewPayment',{id,status}); toast('บันทึกสถานะสลิปแล้ว'); loadPayments(); try{await loadAdminStats();}catch(e){}}
+async function loadVip(){const rows=await callApi('listVipRequests',{}); $('#vipList').innerHTML=table(['ชื่อ','อีเมล','หน่วยงาน','สถานะ','จัดการ'],rows.map(v=>`<tr><td>${h(v.name)}</td><td>${h(v.userEmail)}</td><td>${h(v.organization)}</td><td>${h(v.status)}</td><td>${v.status==='pending'?`<button class="btn btn-sm btn-success" onclick="reviewVip('${h(v.id)}','approved')">อนุมัติ</button> <button class="btn btn-sm btn-outline-danger" onclick="reviewVip('${h(v.id)}','rejected')">ปฏิเสธ</button>`:''}</td></tr>`));}
+async function reviewVip(id,status){await callApi('reviewVip',{id,status}); toast('บันทึก VIP แล้ว'); loadVip(); try{await loadAdminStats();}catch(e){}}
+async function loadEvents(){const rows=await callApi('listEvents',{includeDrafts:true}); $('#eventAdminList').innerHTML=table(['กิจกรรม','วันเวลา','ประเภท','ราคา','สถานะ'],rows.map(e=>`<tr><td>${h(e.title)}</td><td>${h(e.startAt)}</td><td>${h(e.type)}</td><td>${money(e.price)}</td><td>${h(e.status)}</td></tr>`));}
+async function loadUsers(){const rows=await callApi('listUsers',{}); $('#userList').innerHTML=table(['ชื่อ','อีเมล','Role','VIP','ปรับสิทธิ์'],rows.map(u=>`<tr><td>${h(u.name)}</td><td>${h(u.email)}</td><td>${h(u.role)}</td><td>${h(u.vipStatus)}</td><td><select class="form-select form-select-sm" onchange="setRole('${h(u.id)}',this.value)"><option ${u.role==='student'?'selected':''}>student</option><option ${u.role==='admin'?'selected':''}>admin</option><option ${u.role==='super_admin'?'selected':''}>super_admin</option></select></td></tr>`));}
+async function setRole(id,role){await callApi('updateUserRole',{id,role}); toast('ปรับสิทธิ์แล้ว');}
+async function loadNews(){const rows=await callApi('listNews',{includeUnpublished:true}); $('#newsAdminList').innerHTML=table(['หัวข้อ','หมวด','เผยแพร่','ปักหมุด'],rows.map(n=>`<tr><td>${h(n.title)}</td><td>${h(n.category)}</td><td>${h(n.published)}</td><td>${h(n.pinned)}</td></tr>`));}
+async function loadForms(){const rows=await callApi('listForms',{includeDrafts:true}); $('#formList').innerHTML=table(['ชื่อ','ประเภท','แหล่งอ้างอิง','สถานะ'],rows.map(f=>`<tr><td>${h(f.title)}</td><td>${h(f.formType)}</td><td>${h(f.sourceType)} ${h(f.sourceId)}</td><td>${h(f.status)}</td></tr>`));}
+async function loadMedia(){const rows=await callApi('listMedia',{}); $('#mediaList').innerHTML=table(['ชื่อ','หมวด','File ID','URL'],rows.map(m=>`<tr><td>${h(m.name)}</td><td>${h(m.category)}</td><td><code>${h(m.fileId)}</code></td><td><a target="_blank" href="${h(m.url)}">เปิด</a></td></tr>`));}
+async function loadLogs(){const rows=await callApi('listActivityLogs',{limit:100}); $('#logList').innerHTML=table(['เวลา','ผู้ใช้','Action','Entity','Detail'],rows.map(l=>`<tr><td>${h(l.createdAt)}</td><td>${h(l.actorEmail)}</td><td>${h(l.action)}</td><td>${h(l.entityType)} ${h(l.entityId)}</td><td>${h(l.detail)}</td></tr>`));}
+function bindAdminForms(){
+ $('#courseForm').addEventListener('submit',async e=>{e.preventDefault(); const urls = Array.from(document.querySelectorAll('.video-url-item')).map(i => i.value.trim()).filter(Boolean); document.querySelector('[name=videoUrl]').value = urls.join('\n'); const data=formData(e.target); data.featured=$('#featured').checked; await callApi('saveCourse',data); e.target.reset(); const vList = document.getElementById('videoUrlList'); if(vList) { vList.innerHTML = ''; addVideoUrlInput(''); } toast('บันทึกหลักสูตร'); loadCourses(); loadAdminStats();});
+ $('#eventForm').addEventListener('submit',async e=>{e.preventDefault(); await callApi('saveEvent',formData(e.target)); e.target.reset(); toast('บันทึกกิจกรรมแล้ว'); loadEvents(); loadAdminStats();});
+ $('#newsForm').addEventListener('submit',async e=>{e.preventDefault(); const data=formData(e.target); data.pinned=$('#newsPinned').checked; data.published=$('#newsPub').checked; await callApi('saveNews',data); e.target.reset(); $('#newsPub').checked=true; toast('บันทึกข่าวแล้ว'); loadNews();});
+ $('#formBuilder').addEventListener('submit',async e=>{e.preventDefault(); const data=formData(e.target); data.questions=JSON.parse(data.questionsRaw); delete data.questionsRaw; await callApi('saveForm',data); e.target.reset(); toast('บันทึกแบบฟอร์มแล้ว'); loadForms();});
+ $('#broadcastForm').addEventListener('submit',async e=>{e.preventDefault(); const res=await callApi('sendBroadcast',formData(e.target)); toast(`ส่งอีเมลแล้ว ${res.sent} รายการ`); e.target.reset();});
+ $('#mediaForm').addEventListener('submit',async e=>{e.preventDefault(); const f=$('#mediaFile').files[0]; const base64=await fileToBase64(f); await callApi('uploadMedia',{fileName:f.name,mimeType:f.type,base64,category:formData(e.target).category}); e.target.reset(); toast('อัปโหลดไฟล์แล้ว'); loadMedia();});
+ $('#setupBtn').addEventListener('click',async()=>{await callApi('setupDatabase'); toast('Setup database และ assets แล้ว'); loadMedia(); loadAdminStats();});
+}
+window.pageInit=async()=>{
+  const user = await callApi('getCurrentUser');
+  bindAdminForms(); 
+  if (user.role === 'admin') {
+    $$('#adminTabs .nav-link').forEach(t => { 
+      const target = t.dataset.bsTarget;
+      if(target !== '#tabCourses' && target !== '#tabPayments' && target !== '#tabVip' && target !== '#tabEvents' && target !== '#tabMedia') {
+        t.classList.add('d-none'); 
+      }
+    });
+    $('#tabDashboard').classList.remove('show', 'active');
+    $('[data-bs-target="#tabDashboard"]').classList.remove('active');
+    $('#tabCourses').classList.add('show', 'active');
+    $('[data-bs-target="#tabCourses"]').classList.add('active');
+    await Promise.all([loadCourses(), loadPayments(), loadVip(), loadEvents(), loadMedia()].map(p => p.catch(e => console.warn(e))));
+  } else {
+    await Promise.all([loadAdminStats(),loadCourses(),loadPayments(),loadVip(),loadEvents(),loadUsers(),loadNews(),loadForms(),loadMedia(),loadLogs()].map(p => p.catch(e => console.warn(e))));
+  }
+};
+</script>
+</body>
+</html>

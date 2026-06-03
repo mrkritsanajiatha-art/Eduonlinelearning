@@ -1,0 +1,92 @@
+<!doctype html><html lang="th"><head><base target="_top" href="<?= app.publishedUrl ?>"><title>คอร์สของฉัน | <?= app.browserTitle ?></title><?!= include('style') ?></head>
+<body><div class="topbar"><div id="ticker" class="ticker"></div></div><nav class="navbar"><div class="container"><a class="navbar-brand d-flex align-items-center gap-2" href="?page=home"><img class="brand-logo" src="<?= app.logoUrl ?>"><span class="brand-name">ONLINE LEARNING</span></a><span id="userSlot"></span></div></nav>
+<main class="section"><div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>คอร์สของฉัน</h1>
+    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> ข้อมูลส่วนตัว</button>
+    <button class="btn btn-outline-danger ms-2" onclick="logout()"><i class="bi bi-box-arrow-right"></i> ออกจากระบบ</button>
+  </div>
+  <div id="dash" class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4"></div>
+</div></main>
+
+<div class="modal fade" id="profileModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">ข้อมูลส่วนตัว</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="profileForm">
+          <input name="name" id="pName" class="form-control mb-3" placeholder="ชื่อ">
+          <input name="phone" id="pPhone" class="form-control mb-3" placeholder="เบอร์โทร">
+          <input name="organization" id="pOrg" class="form-control mb-3" placeholder="หน่วยงาน">
+          <hr>
+          <input type="password" name="password" class="form-control mb-3" placeholder="รหัสผ่านใหม่ (ปล่อยว่างถ้าไม่เปลี่ยน)">
+          <button class="btn btn-primary w-100">บันทึกข้อมูล</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="footer py-5 mt-5 border-top">
+  <div class="container text-center">
+    <h5 class="mb-3 text-primary">ติดต่อเรา</h5>
+    <div class="d-flex justify-content-center gap-3 mb-4">
+      <a href="https://lin.ee/I3b1Q55" target="_blank" class="btn btn-outline-success"><i class="bi bi-line"></i> Line Official</a>
+      <a href="https://www.facebook.com/share/18cfh82rzr/?mibextid=wwXIfr" target="_blank" class="btn btn-outline-primary"><i class="bi bi-facebook"></i> Facebook Page</a>
+    </div>
+    <div class="small text-muted">ONLINE LEARNING · ศูนย์กลางการพัฒนาวิชาชีพครูและบุคลากรทางการศึกษาของประเทศไทย</div>
+  </div>
+</footer>
+<?!= include('script') ?>
+<script>
+window.pageInit=async()=>{ 
+  setLoading('#dash'); 
+  const d=await callApi('myDashboard'); 
+  $('#pName').value = d.user.name || '';
+  $('#pPhone').value = d.user.phone || '';
+  $('#pOrg').value = d.user.organization || '';
+
+  $('#dash').innerHTML = d.enrollments.map(e => {
+    const c = e.course;
+    if(!c) return '';
+    let statusHtml = '';
+    let actionHtml = '';
+    
+    if (e.status === 'active' || e.status === 'completed') {
+      statusHtml = `<span class="badge bg-success">อนุมัติแล้ว</span>`;
+      actionHtml = `<a href="${pageUrl('course-detail',{id:c.id})}" class="btn btn-primary w-100 fw-bold">เข้าเรียน</a>`;
+    } else if (e.status === 'pending_payment' && e.paymentId) {
+      statusHtml = `<span class="badge bg-warning text-dark">รอแอดมินอนุมัติ</span>`;
+      actionHtml = `<button class="btn btn-secondary w-100 fw-bold" disabled>รอแอดมินอนุมัติ</button>`;
+    } else {
+      statusHtml = `<span class="badge bg-danger">รอชำระเงิน</span>`;
+      actionHtml = `<a href="${pageUrl('payment',{courseId:c.id})}" class="btn btn-warning w-100 fw-bold">ชำระเงิน</a>`;
+    }
+
+    return `<div class="col"><div class="card h-100 position-relative">
+      <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 shadow-sm" onclick="unenroll('${e.id}')" title="ลบคอร์สนี้"><i class="bi bi-trash"></i></button>
+      <img src="${h(courseImage(c))}" class="card-img-top">
+      <div class="card-body d-flex flex-column gap-2">
+        <div class="d-flex justify-content-between pe-4">${badge(c.category)} ${statusHtml}</div>
+        <h5 class="card-title">${h(c.title)}</h5>
+        <div class="mt-auto pt-2">${actionHtml}</div>
+      </div>
+    </div></div>`;
+  }).join('') || '<div class="col-12"><div class="empty">คุณยังไม่ได้ลงทะเบียนเรียนคอร์สใดๆ</div></div>';
+};
+window.unenroll = async (enrollmentId) => {
+  if(!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบหลักสูตรนี้ออกจากคอร์สของฉัน?')) return;
+  showGlobalLoading();
+  try {
+    await callApi('unenrollCourse', { id: enrollmentId });
+    toast('ลบหลักสูตรเรียบร้อยแล้ว');
+    $('#globalLoader').classList.remove('active');
+    window.pageInit();
+  } catch(err) {
+    toast(err.message, 'danger');
+    $('#globalLoader').classList.remove('active');
+  }
+};
+</script></body></html>
